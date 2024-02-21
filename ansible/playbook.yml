@@ -1,0 +1,15 @@
+---
+- hosts: "{{ servers }}"
+  become: true
+  gather_facts: false
+
+  vars:
+    deployment_artifact: ../target/mina-3.4.jar
+    deployment_workdir: /opt/mina-backend
+    deployment_server_port: 8182
+    deployment_service: mina-backend
+    deployment_newrelic_enabled: false
+    deployment_newrelic_version: current
+
+  roles:
+  - staketab.java-deployment

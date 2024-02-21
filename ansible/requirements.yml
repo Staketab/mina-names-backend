@@ -1,0 +1,4 @@
+---
+roles:
+- name: staketab.java-deployment
+  src: https://github.com/Staketab/ansible-role-backend-deploy

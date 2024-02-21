@@ -1,0 +1,60 @@
+name: Deploy API
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options:
+          - deploy-dev
+          - deploy-prod
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: 21
+          distribution: adopt
+
+      - name: Build the app with Maven
+        run: mvn -B clean install --file pom.xml -DskipTests
+
+      - name: Settings
+        uses: kanga333/variable-mapper@v0.2.2
+        id: settings
+        with:
+          key: ${{ github.event.inputs.environment || github.ref_name }}
+          map: |
+            {
+              "^main$": {
+                "environment": "deploy-dev"
+              },
+              ".*": {
+                "environment": "${{ github.event.inputs.environment }}"
+              }
+            }
+          export_to: output,log
+          mode: fill
+
+      - name: Deploy the app
+        working-directory: ./ansible
+        run: |
+          echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > ansible.key
+          ansible-galaxy install -r requirements.yml
+          ansible-playbook playbook.yml \
+            --inventory=secrets.yml \
+            --extra-vars='servers=${{ steps.settings.outputs.environment }}' \
+            --vault-password-file=ansible.key
+          rm -f ansible.key
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: 'false'
