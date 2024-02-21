@@ -1,0 +1,4 @@
+spring:
+  postgres:
+    hikari:
+      maximum-pool-size: 500

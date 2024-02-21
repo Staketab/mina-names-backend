@@ -1,1 +1,3 @@
-
+info:
+  application:
+    name: 'Mina Names Backend'
