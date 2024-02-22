@@ -12,7 +12,7 @@ spring:
     scheduling:
       pool:
         size: 30
-  names-datasource:
+  mina-names-datasource:
     jdbc-url: ${MINA_NAMES_DB_URL}
     username: ${MINA_NAMES_DB_USERNAME}
     password: ${MINA_NAMES_DB_PASSWORD}
