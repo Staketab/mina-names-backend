@@ -34,8 +34,6 @@ public class DbConfig {
     private String dllAuto;
     @Value(value = "${hibernate.mina-names.show_sql:false}")
     private String showSql;
-    @Value(value = "${hibernate.mina-names.dialect}")
-    private String dialect;
     @Value(value = "${hibernate.mina-names.batch_size}")
     private int batchSize;
     @Value(value = "${hibernate.mina-names.generate_statistics:false}")
@@ -54,7 +52,6 @@ public class DbConfig {
         Map<String, Object> properties = new HashMap<>();
         properties.put("hibernate.hbm2ddl.auto", dllAuto);
         properties.put("hibernate.show_sql", showSql);
-        properties.put("hibernate.dialect", dialect);
         properties.put("hibernate.jdbc.batch_size", batchSize);
         properties.put("hibernate.generate_statistics", generateStatistics);
         return properties;
