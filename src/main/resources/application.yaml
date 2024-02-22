@@ -1,3 +1,57 @@
-info:
-  application:
-    name: 'Mina Names Backend'
+application:
+  name: 'Mina Names Backend'
+server:
+  port: 8080
+  servlet:
+    register-default-servlet: true
+  ssl:
+    enabled: false
+
+spring:
+  task:
+    scheduling:
+      pool:
+        size: 30
+  names-datasource:
+    jdbc-url: ${MINA_NAMES_DB_URL}
+    username: ${MINA_NAMES_DB_USERNAME}
+    password: ${MINA_NAMES_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 60000
+      maximum-pool-size: 50 # default is 10
+  jpa:
+    open-in-view: true
+    generate-ddl: true
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    hibernate:
+      ddl-auto: update
+      format_sql: true
+
+hibernate:
+  mina-names:
+    hbm2ddl:
+      auto: update
+    show_sql: false
+    dialect: org.hibernate.dialect.PostgreSQLDialect
+    batch_size: 50
+
+springdoc.swagger-ui:
+  doc-expansion: none
+  operationsSorter: alpha
+  tagsSorter: alpha
+
+logging:
+  level:
+    org.hibernate.SQL: ERROR
+    org.hibernate.type.descriptor.sql.BasicBinder: ERROR
+
+scheduled:
+  enabled: false
+  tx-resync:
+    enabled: false
+    initial-delay: 660000
+    upload-mills: 660000
