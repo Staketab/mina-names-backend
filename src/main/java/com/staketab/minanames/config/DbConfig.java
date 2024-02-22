@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@PropertySource({"classpath:application.yml"})
+@PropertySource({"classpath:application.yaml"})
 @EnableJpaRepositories(
         basePackages = "com.staketab.minanames.repository",
         entityManagerFactoryRef = "minaNamesEntityManager",
