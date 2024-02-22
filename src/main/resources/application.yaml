@@ -3,6 +3,7 @@ application:
 server:
   port: 8080
   servlet:
+    context-path: /api
     register-default-servlet: true
   ssl:
     enabled: false
