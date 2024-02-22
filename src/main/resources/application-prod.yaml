@@ -2,3 +2,7 @@ spring:
   postgres:
     hikari:
       maximum-pool-size: 500
+
+api:
+  server:
+    url: ${API_SERVER_URL}

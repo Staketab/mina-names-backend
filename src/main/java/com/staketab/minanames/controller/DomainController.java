@@ -13,7 +13,7 @@ import java.util.NoSuchElementException;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
-@RequestMapping("/api/domains")
+@RequestMapping("/domains")
 @RequiredArgsConstructor
 @Slf4j
 public class DomainController {
