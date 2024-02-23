@@ -4,7 +4,6 @@ import com.staketab.minanames.entity.dto.TxStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -26,9 +25,6 @@ public class PayableTransactionEntity {
     @OneToMany(mappedBy="transaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @ToString.Exclude
     private Set<DomainEntity> domains;
-
-    @Column(name = "reservation_timestamp")
-    private Long reservationTimestamp;
 
     @Column(name = "amount")
     private Double txAmount;

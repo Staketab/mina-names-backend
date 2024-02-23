@@ -38,6 +38,8 @@ public class DomainEntity {
 
     private Double amount;
 
+    @Column(name = "reservation_timestamp")
+    private Long reservationTimestamp;
     @Column(name = "expiration_time_years")
     private Integer expirationTime;  // expirationTime  TODO: (need to think about expirationTimestamp)
     @Column(name = "start_timestamp")

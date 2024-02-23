@@ -3,11 +3,10 @@ package com.staketab.minanames.service.impl;
 import com.staketab.minanames.dto.DomainReservationDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
 import com.staketab.minanames.entity.DomainEntity;
-import com.staketab.minanames.entity.PayableTransactionEntity;
 import com.staketab.minanames.entity.dto.DomainStatus;
-import com.staketab.minanames.entity.dto.TxStatus;
 import com.staketab.minanames.repository.DomainRepository;
 import com.staketab.minanames.service.abstraction.DomainService;
+import com.staketab.minanames.service.abstraction.TxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,21 +19,17 @@ import java.util.Optional;
 public class DomainServiceImpl implements DomainService {
 
     private final DomainRepository domainRepository;
+    private final TxService txService;
 
     @Override
     public DomainEntity create(DomainReservationDTO request) {
-        PayableTransactionEntity tx = PayableTransactionEntity.builder()
-                .txHash(request.getTxHash())
-                .reservationTimestamp(System.currentTimeMillis())
-                .txStatus(TxStatus.PENDING)
-                .build();
-
         DomainEntity domain = DomainEntity.builder()
                 .ownerAddress(request.getOwnerAddress())
-                .transaction(tx)
+                .transaction(txService.getOrCreate(request.getTxHash()))
                 .domainName(request.getDomainName())
                 .amount(request.getAmount())
                 .expirationTime(request.getExpirationTime())
+                .reservationTimestamp(System.currentTimeMillis())
                 .domainStatus(DomainStatus.PENDING)
                 .isSendToCloudWorker(false)
                 .isDefault(false)
