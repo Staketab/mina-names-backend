@@ -34,6 +34,7 @@ spring:
 
 hibernate:
   mina-names:
+    dialect: org.hibernate.dialect.PostgreSQLDialect
     hbm2ddl:
       auto: update
     show_sql: false
