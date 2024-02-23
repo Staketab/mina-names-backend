@@ -1,7 +1,9 @@
 package com.staketab.minanames.dto;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
-public class DomainRequestDTO {
+@Builder
+public class DomainUpdateDTO {
 }
