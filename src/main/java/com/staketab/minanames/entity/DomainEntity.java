@@ -38,8 +38,8 @@ public class DomainEntity {
 
     private Double amount;
 
-    @Column(name = "expiration_timestamp")
-    private Long expirationTimestamp;  // startTimestamp + expirationTime
+    @Column(name = "expiration_time_years")
+    private Integer expirationTime;  // expirationTime  TODO: (need to think about expirationTimestamp)
     @Column(name = "start_timestamp")
     private Long startTimestamp;  // time when tx become applied
 
