@@ -21,8 +21,8 @@ import static com.staketab.minanames.utils.Constants.API_KEY_HEADER;
 @Slf4j
 public class ApiKeyRequestFilter extends GenericFilterBean {
     private final ApiKeyRepository apiKeyRepository;
-    public static final String API_CREATE = "/domains/save";
-    public static final String API_UPDATE = "/domains/edit";
+    public static final String API_CREATE = "/api/domains/save";
+    public static final String API_UPDATE = "/api/domains/edit";
 
     public ApiKeyRequestFilter(ApiKeyRepository apiKeyRepository) {
         this.apiKeyRepository = apiKeyRepository;
@@ -32,12 +32,11 @@ public class ApiKeyRequestFilter extends GenericFilterBean {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) servletRequest;
         String path = req.getRequestURI();
-        System.out.println("path: " + path);
         String key = req.getHeader(API_KEY_HEADER) == null ? "" : req.getHeader(API_KEY_HEADER);
 
         if(!path.startsWith(API_CREATE) && !path.startsWith(API_UPDATE)){
-            System.out.println("in if");
             filterChain.doFilter(servletRequest, servletResponse);
+            return;
         }
 
         log.debug("Trying authorize with x-api-key: " + key);
