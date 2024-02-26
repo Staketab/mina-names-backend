@@ -2,6 +2,7 @@ package com.staketab.minanames.service.impl;
 
 import com.staketab.minanames.dto.DomainReservationDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
+import com.staketab.minanames.dto.request.BaseRequest;
 import com.staketab.minanames.entity.DomainEntity;
 import com.staketab.minanames.entity.dto.DomainStatus;
 import com.staketab.minanames.repository.DomainRepository;
@@ -9,6 +10,7 @@ import com.staketab.minanames.service.abstraction.DomainService;
 import com.staketab.minanames.service.abstraction.TxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -20,6 +22,11 @@ public class DomainServiceImpl implements DomainService {
 
     private final DomainRepository domainRepository;
     private final TxService txService;
+
+    @Override
+    public Page<DomainEntity> findAllByPageable(BaseRequest request) {
+        return domainRepository.findAll(request.buildPageable());
+    }
 
     @Override
     public DomainEntity create(DomainReservationDTO request) {
