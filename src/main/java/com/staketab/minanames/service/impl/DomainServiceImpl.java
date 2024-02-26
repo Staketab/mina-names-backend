@@ -3,6 +3,7 @@ package com.staketab.minanames.service.impl;
 import com.staketab.minanames.dto.DomainReservationDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
+import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
 import com.staketab.minanames.entity.dto.DomainStatus;
 import com.staketab.minanames.repository.DomainRepository;
@@ -24,8 +25,8 @@ public class DomainServiceImpl implements DomainService {
     private final TxService txService;
 
     @Override
-    public Page<DomainEntity> findAllByPageable(BaseRequest request) {
-        return domainRepository.findAll(request.buildPageable());
+    public Page<DomainEntity> findAllByPageable(BaseRequest request, SearchParams searchParams) {
+        return domainRepository.findAllDomains(searchParams, request.buildPageable());
     }
 
     @Override
