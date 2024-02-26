@@ -3,10 +3,12 @@ package com.staketab.minanames.controller;
 import com.staketab.minanames.dto.DomainReservationDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
+import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.dto.request.sort.DomainsSortColumn;
 import com.staketab.minanames.entity.DomainEntity;
 import com.staketab.minanames.service.abstraction.DomainService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +36,11 @@ public class DomainController {
     public Page<DomainEntity> getDomains(@Valid @ParameterObject BaseRequest request, @RequestParam
     @Schema(defaultValue = "RESERVATION_TIMESTAMP", allowableValues =
             {"AMOUNT", "STATUS", "RESERVATION_TIMESTAMP", "IS_SEND_TO_CLOUD_WORKER"},
-            description = "Select sorting parameter.") DomainsSortColumn sortBy) {
-        return domainService.findAllByPageable(request.withSortColumn(sortBy));
+            description = "Select sorting parameter.") DomainsSortColumn sortBy,
+                                         @RequestParam(required = false, defaultValue = "")
+                                         @Parameter(description = "Domain Name") String searchStr) {
+        SearchParams searchParams = new SearchParams(searchStr);
+        return domainService.findAllByPageable(request.withSortColumn(sortBy), searchParams);
     }
 
     @PostMapping("/save")

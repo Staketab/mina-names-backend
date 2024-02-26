@@ -1,9 +1,22 @@
 package com.staketab.minanames.repository;
 
+import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DomainRepository extends JpaRepository<DomainEntity, String> {
+
+    @Query(nativeQuery = true,
+            value = """
+                            select *
+                              from domains
+                              where (?#{#searchParams.getSearchStr} is null
+                                      or name = cast(?#{#searchParams.getSearchStr} as text))
+                            """)
+    Page<DomainEntity> findAllDomains(SearchParams searchParams, Pageable buildPageable);
 }
