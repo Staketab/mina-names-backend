@@ -59,4 +59,9 @@ public class DomainServiceImpl implements DomainService {
     public DomainEntity update(DomainUpdateDTO domainUpdateDTO) {
         return null;
     }
+
+    @Override
+    public Boolean isNameReserved(String name) {
+        return domainRepository.findDomainEntityByDomainName(name).isPresent();
+    }
 }
