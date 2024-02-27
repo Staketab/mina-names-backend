@@ -15,8 +15,6 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
             value = """
                             select *
                               from domains
-                              where (?#{#searchParams.getSearchStr} is null
-                                      or name = cast(?#{#searchParams.getSearchStr} as text))
-                            """)
-    Page<DomainEntity> findAllDomains(SearchParams searchParams, Pageable buildPageable);
+                              where (:searchStr is null or name = :searchStr)""")
+    Page<DomainEntity> findAllDomains(String searchStr, Pageable buildPageable);
 }
