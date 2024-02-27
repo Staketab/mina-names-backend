@@ -33,14 +33,27 @@ public class DomainController {
 
     @GetMapping("/")
     @Operation(summary = "getDomains", description = "Get a page of all domains.")
-    public Page<DomainEntity> getDomains(@Valid @ParameterObject BaseRequest request, @RequestParam
-    @Schema(defaultValue = "RESERVATION_TIMESTAMP", allowableValues =
-            {"AMOUNT", "STATUS", "RESERVATION_TIMESTAMP", "IS_SEND_TO_CLOUD_WORKER"},
-            description = "Select sorting parameter.") DomainsSortColumn sortBy,
+    public Page<DomainEntity> getDomains(@Valid @ParameterObject BaseRequest request,
+                                         @RequestParam @Schema(defaultValue = "RESERVATION_TIMESTAMP", allowableValues =
+                                                 {"AMOUNT", "STATUS", "RESERVATION_TIMESTAMP", "IS_SEND_TO_CLOUD_WORKER"},
+                                                 description = "Select sorting parameter.") DomainsSortColumn sortBy,
                                          @RequestParam(required = false, defaultValue = "")
                                          @Parameter(description = "Domain Name") String searchStr) {
         SearchParams searchParams = new SearchParams(searchStr);
         return domainService.findAllByPageable(request.withSortColumn(sortBy), searchParams);
+    }
+
+    @GetMapping("/accounts/{accountAddress}")
+    @Operation(summary = "getAccountDomains", description = "Get a page of account's domains.")
+    public Page<DomainEntity> getAccountDomains(@Valid @ParameterObject BaseRequest request,
+                                                @PathVariable String accountAddress,
+                                                @RequestParam @Schema(defaultValue = "RESERVATION_TIMESTAMP", allowableValues =
+                                                        {"AMOUNT", "STATUS", "RESERVATION_TIMESTAMP", "IS_SEND_TO_CLOUD_WORKER"},
+                                                        description = "Select sorting parameter.") DomainsSortColumn sortBy,
+                                                @RequestParam(required = false, defaultValue = "")
+                                                @Parameter(description = "Domain Name") String searchStr) {
+        SearchParams searchParams = new SearchParams(searchStr);
+        return domainService.findAllByAccountPageable(request.withSortColumn(sortBy), accountAddress, searchParams);
     }
 
     @PostMapping("/save")

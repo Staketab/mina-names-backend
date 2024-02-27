@@ -1,6 +1,5 @@
 package com.staketab.minanames.repository;
 
-import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,4 +16,11 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
                               from domains
                               where (:searchStr is null or name = :searchStr)""")
     Page<DomainEntity> findAllDomains(String searchStr, Pageable buildPageable);
+
+    @Query(nativeQuery = true,
+            value = """
+                            select *
+                                from domains
+                                where owner_address = :accountAddress and (:searchStr is null or name = :searchStr)""")
+    Page<DomainEntity> findAllDomainsByAccount(String searchStr, String accountAddress, Pageable buildPageable);
 }
