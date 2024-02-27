@@ -82,4 +82,9 @@ public class DomainController {
             return notFound().build();
         }
     }
+
+    @GetMapping("/{domainName}/reserved")
+    public ResponseEntity<Boolean> isDomainNameReserved(@PathVariable String domainName) {
+        return ok(domainService.isNameReserved(domainName));
+    }
 }

@@ -15,4 +15,5 @@ public interface DomainService {
     DomainEntity create(DomainReservationDTO domainRequest);
     Optional<DomainEntity> retrieve(String id);
     DomainEntity update(DomainUpdateDTO domainUpdateDTO);
+    Boolean isNameReserved(String name);
 }

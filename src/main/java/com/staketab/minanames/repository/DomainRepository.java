@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
+
 @Repository
 public interface DomainRepository extends JpaRepository<DomainEntity, String> {
 
@@ -23,4 +26,6 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
                                 from domains
                                 where owner_address = :accountAddress and (:searchStr is null or name = :searchStr)""")
     Page<DomainEntity> findAllDomainsByAccount(String searchStr, String accountAddress, Pageable buildPageable);
+
+    Optional<DomainEntity> findDomainEntityByDomainName(String domainName);
 }
