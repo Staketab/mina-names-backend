@@ -30,6 +30,11 @@ public class DomainServiceImpl implements DomainService {
     }
 
     @Override
+    public Page<DomainEntity> findAllByAccountPageable(BaseRequest request, String accountAddress, SearchParams searchParams) {
+        return domainRepository.findAllDomainsByAccount(searchParams.getSearchStr(), accountAddress, request.buildPageable());
+    }
+
+    @Override
     public DomainEntity create(DomainReservationDTO request) {
         DomainEntity domain = DomainEntity.builder()
                 .ownerAddress(request.getOwnerAddress())
