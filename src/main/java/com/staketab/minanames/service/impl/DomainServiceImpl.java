@@ -26,7 +26,7 @@ public class DomainServiceImpl implements DomainService {
 
     @Override
     public Page<DomainEntity> findAllByPageable(BaseRequest request, SearchParams searchParams) {
-        return domainRepository.findAllDomains(searchParams, request.buildPageable());
+        return domainRepository.findAllDomains(searchParams.getSearchStr(), request.buildPageable());
     }
 
     @Override
