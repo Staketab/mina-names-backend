@@ -21,6 +21,14 @@ spring:
     hikari:
       connection-timeout: 60000
       maximum-pool-size: 50 # default is 10
+  minascan-datasource:
+    enabled: true
+    jdbc-url: ${MINASCAN_DB_URL}
+    username: ${MINASCAN_DB_USERNAME}
+    password: ${MINASCAN_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 2 # default is 10
   jpa:
     open-in-view: true
     generate-ddl: true
@@ -39,6 +47,11 @@ hibernate:
       auto: update
     show_sql: false
     batch_size: 50
+  minascan:
+    hbm2ddl:
+      auto: update
+    show_sql: false
+    dialect: org.hibernate.dialect.PostgreSQLDialect
 
 springdoc.swagger-ui:
   doc-expansion: none
