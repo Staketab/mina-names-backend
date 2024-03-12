@@ -25,7 +25,7 @@ public class DomainEntity {
     @Column(name = "owner_address", columnDefinition = "TEXT")
     private String ownerAddress;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name="transaction", nullable=false)
     @JsonIdentityInfo(generator= ObjectIdGenerators.PropertyGenerator.class, property="txHash")
     @JsonIdentityReference(alwaysAsId=true)
