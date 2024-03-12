@@ -1,12 +1,15 @@
 package com.staketab.minanames.repository;
 
 import com.staketab.minanames.entity.DomainEntity;
+import com.staketab.minanames.entity.PayableTransactionEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.Optional;
 
 
@@ -28,4 +31,6 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
     Page<DomainEntity> findAllDomainsByAccount(String searchStr, String accountAddress, Pageable buildPageable);
 
     Optional<DomainEntity> findDomainEntityByDomainName(String domainName);
+
+    void deleteAllByTransactionIn(Collection<PayableTransactionEntity> transaction);
 }
