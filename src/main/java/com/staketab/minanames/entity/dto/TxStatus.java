@@ -7,5 +7,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum TxStatus {
     PENDING,
-    APPLIED
+    APPLIED,
+    FAILED
 }

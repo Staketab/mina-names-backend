@@ -16,7 +16,7 @@ public class CheckerReservedTransactionScheduler {
     private final TxService txService;
 
     @Scheduled(fixedDelayString = "${scheduled.checker-tx-reserve.upload-mills}")
-    public void updateProjects() {
+    public void checkReservedTxs() {
         txService.checkTransactions();
     }
 }
