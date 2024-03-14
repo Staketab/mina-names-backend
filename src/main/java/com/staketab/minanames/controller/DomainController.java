@@ -87,4 +87,9 @@ public class DomainController {
     public ResponseEntity<Boolean> isDomainNameReserved(@PathVariable String domainName) {
         return ok(domainService.isNameReserved(domainName));
     }
+
+    @PutMapping("/{id}/default")
+    public ResponseEntity<Boolean> setDefaultDomain(@PathVariable String id) {
+        return ok(domainService.setDefaultDomain(id));
+    }
 }
