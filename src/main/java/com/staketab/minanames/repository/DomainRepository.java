@@ -33,4 +33,16 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
     Optional<DomainEntity> findDomainEntityByDomainName(String domainName);
 
     void deleteAllByTransactionIn(Collection<PayableTransactionEntity> transaction);
+
+    @Modifying
+    @Query(nativeQuery = true,
+            value = """
+            UPDATE domains
+            SET is_default = CASE
+                WHEN id = :id THEN true
+                ELSE false
+                END
+            WHERE owner_address = (select owner_address from domains where id = :id)
+                                    """)
+    int setDefaultDomain(String id);
 }
