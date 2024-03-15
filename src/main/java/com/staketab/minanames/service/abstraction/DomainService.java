@@ -17,4 +17,5 @@ public interface DomainService {
     DomainEntity update(DomainUpdateDTO domainUpdateDTO);
     Boolean isNameReserved(String name);
     Boolean setDefaultDomain(String id);
+    void removeReservedDomains();
 }
