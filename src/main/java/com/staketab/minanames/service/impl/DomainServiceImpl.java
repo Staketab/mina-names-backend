@@ -15,6 +15,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -70,5 +72,12 @@ public class DomainServiceImpl implements DomainService {
     @Transactional
     public Boolean setDefaultDomain(String id) {
         return domainRepository.setDefaultDomain(id) > 0;
+    }
+
+    @Override
+    public void removeReservedDomains() {
+        LocalDateTime localDateTime = LocalDateTime.now().minusDays(1);
+        long currentTimestamp = Timestamp.valueOf(localDateTime).getTime();
+        domainRepository.deleteAllByReservationTimestampLessThan(currentTimestamp);
     }
 }

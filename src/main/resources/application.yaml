@@ -65,7 +65,9 @@ logging:
 
 scheduled:
   enabled: false
-  tx-resync:
+  checker-tx-reserve:
     enabled: false
-    initial-delay: 660000
-    upload-mills: 660000
+    upload-mills: 30000 # runs 30 seconds after the previous job
+  domain:
+    enabled: false
+    upload-mills: 60000 # runs 60 seconds after the previous job
