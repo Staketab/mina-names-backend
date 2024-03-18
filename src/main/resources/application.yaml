@@ -64,10 +64,10 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: ERROR
 
 scheduled:
-  enabled: false
+  enabled: true
   checker-tx-reserve:
-    enabled: false
+    enabled: true
     upload-mills: 30000 # runs 30 seconds after the previous job
   domain:
-    enabled: false
+    enabled: true
     upload-mills: 60000 # runs 60 seconds after the previous job
