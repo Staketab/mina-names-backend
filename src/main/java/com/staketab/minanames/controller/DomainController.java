@@ -2,6 +2,7 @@ package com.staketab.minanames.controller;
 
 import com.staketab.minanames.dto.DomainReservationDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
+import com.staketab.minanames.dto.ReservedDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.dto.request.sort.DomainsSortColumn;
@@ -16,7 +17,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.NoSuchElementException;
 
@@ -84,7 +92,7 @@ public class DomainController {
     }
 
     @GetMapping("/{domainName}/reserved")
-    public ResponseEntity<String> isDomainNameReserved(@PathVariable String domainName) {
+    public ResponseEntity<ReservedDomainDTO> isDomainNameReserved(@PathVariable String domainName) {
         return ok(domainService.isNameReserved(domainName));
     }
 
