@@ -84,7 +84,7 @@ public class DomainController {
     }
 
     @GetMapping("/{domainName}/reserved")
-    public ResponseEntity<Boolean> isDomainNameReserved(@PathVariable String domainName) {
+    public ResponseEntity<String> isDomainNameReserved(@PathVariable String domainName) {
         return ok(domainService.isNameReserved(domainName));
     }
 

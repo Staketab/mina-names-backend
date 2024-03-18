@@ -42,6 +42,7 @@ public class TxServiceImpl implements TxService {
         domainRepository.deleteAllByTransactionIn(txStatusListMap.get(TxStatus.FAILED));
     }
 
+    //todo set amount column
     private void applyReservedTxs(List<PayableTransactionEntity> pendingTxs) {
         List<PayableTransactionEntity> appliedTxs = pendingTxs.stream()
                 .peek(payableTransaction -> payableTransaction.setTxStatus(TxStatus.APPLIED))

@@ -64,8 +64,8 @@ public class DomainServiceImpl implements DomainService {
     }
 
     @Override
-    public Boolean isNameReserved(String name) {
-        return domainRepository.findDomainEntityByDomainName(name).isPresent();
+    public String isNameReserved(String name) {
+        return domainRepository.findDomainEntityByDomainName(name).map(DomainEntity::getId).orElse(null);
     }
 
     @Override
