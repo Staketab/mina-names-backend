@@ -2,6 +2,7 @@ package com.staketab.minanames.service.abstraction;
 
 import com.staketab.minanames.dto.DomainReservationDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
+import com.staketab.minanames.dto.ReservedDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
@@ -15,7 +16,7 @@ public interface DomainService {
     DomainEntity create(DomainReservationDTO domainRequest);
     Optional<DomainEntity> retrieve(String id);
     DomainEntity update(DomainUpdateDTO domainUpdateDTO);
-    String isNameReserved(String name);
+    ReservedDomainDTO isNameReserved(String name);
     Boolean setDefaultDomain(String id);
     void removeReservedDomains();
 }

@@ -2,6 +2,7 @@ package com.staketab.minanames.service.impl;
 
 import com.staketab.minanames.dto.DomainReservationDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
+import com.staketab.minanames.dto.ReservedDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
@@ -64,8 +65,10 @@ public class DomainServiceImpl implements DomainService {
     }
 
     @Override
-    public String isNameReserved(String name) {
-        return domainRepository.findDomainEntityByDomainName(name).map(DomainEntity::getId).orElse(null);
+    public ReservedDomainDTO isNameReserved(String name) {
+        return domainRepository.findDomainEntityByDomainName(name)
+                .map(this::mapToReservedDomainDTO)
+                .orElseGet(ReservedDomainDTO::new);
     }
 
     @Override
@@ -79,5 +82,11 @@ public class DomainServiceImpl implements DomainService {
         LocalDateTime localDateTime = LocalDateTime.now().minusDays(1);
         long currentTimestamp = Timestamp.valueOf(localDateTime).getTime();
         domainRepository.deleteAllByReservationTimestampLessThan(currentTimestamp);
+    }
+
+    private ReservedDomainDTO mapToReservedDomainDTO(DomainEntity domainEntity) {
+        return ReservedDomainDTO.builder()
+                .id(domainEntity.getId())
+                .build();
     }
 }
