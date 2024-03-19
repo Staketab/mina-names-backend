@@ -36,7 +36,7 @@ public class DomainEntity {
     @Column(name = "img", columnDefinition = "TEXT")
     private String domainImg;
 
-    private Double amount;
+    private Long amount;
 
     @Column(name = "reservation_timestamp")
     private Long reservationTimestamp;

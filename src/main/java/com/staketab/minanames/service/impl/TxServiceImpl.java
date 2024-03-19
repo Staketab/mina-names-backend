@@ -6,7 +6,7 @@ import com.staketab.minanames.minascan.TransactionRepository;
 import com.staketab.minanames.minascan.TxProjection;
 import com.staketab.minanames.repository.DomainRepository;
 import com.staketab.minanames.repository.PayableTransactionRepository;
-import com.staketab.minanames.service.abstraction.TxService;
+import com.staketab.minanames.service.TxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,7 +42,6 @@ public class TxServiceImpl implements TxService {
         domainRepository.deleteAllByTransactionIn(txStatusListMap.get(TxStatus.FAILED));
     }
 
-    //todo set amount column
     private void applyReservedTxs(List<PayableTransactionEntity> pendingTxs) {
         List<PayableTransactionEntity> appliedTxs = pendingTxs.stream()
                 .peek(payableTransaction -> payableTransaction.setTxStatus(TxStatus.APPLIED))
@@ -62,11 +61,13 @@ public class TxServiceImpl implements TxService {
         List<PayableTransactionEntity> failed = new ArrayList<>();
         List<PayableTransactionEntity> applied = new ArrayList<>();
         for (TxProjection txProjection : txStatusByTxHashIn) {
+            PayableTransactionEntity payableTransactionEntity = mapPayableTransactions.get(txProjection.getTxHash());
             if (TxStatus.APPLIED.name().equals(txProjection.getStatus().toUpperCase())) {
-                applied.add(mapPayableTransactions.get(txProjection.getTxHash()));
+                payableTransactionEntity.setTxAmount(txProjection.getAmount());
+                applied.add(payableTransactionEntity);
             }
             if (TxStatus.FAILED.name().equals(txProjection.getStatus().toUpperCase())) {
-                failed.add(mapPayableTransactions.get(txProjection.getTxHash()));
+                failed.add(payableTransactionEntity);
             }
         }
         return Map.of(TxStatus.APPLIED, applied, TxStatus.FAILED, failed);

@@ -7,7 +7,8 @@ import com.staketab.minanames.dto.request.BaseRequest;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.dto.request.sort.DomainsSortColumn;
 import com.staketab.minanames.entity.DomainEntity;
-import com.staketab.minanames.service.abstraction.DomainService;
+import com.staketab.minanames.entity.dto.DomainDTO;
+import com.staketab.minanames.service.DomainService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -71,7 +72,7 @@ public class DomainController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DomainEntity> retrieve(@PathVariable String id) {
+    public ResponseEntity<DomainDTO> retrieve(@PathVariable String id) {
         return ok(domainService.retrieve(id));
     }
 

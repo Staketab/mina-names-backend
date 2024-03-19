@@ -1,4 +1,4 @@
-package com.staketab.minanames.service.abstraction;
+package com.staketab.minanames.service;
 
 import com.staketab.minanames.entity.PayableTransactionEntity;
 
