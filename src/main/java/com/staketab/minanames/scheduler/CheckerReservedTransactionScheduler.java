@@ -1,6 +1,6 @@
 package com.staketab.minanames.scheduler;
 
-import com.staketab.minanames.service.abstraction.TxService;
+import com.staketab.minanames.service.TxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

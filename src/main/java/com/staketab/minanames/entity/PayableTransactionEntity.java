@@ -27,5 +27,5 @@ public class PayableTransactionEntity {
     private Set<DomainEntity> domains;
 
     @Column(name = "amount")
-    private Double txAmount;
+    private Long txAmount;
 }
