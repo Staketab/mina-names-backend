@@ -26,9 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.NoSuchElementException;
-
-import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
@@ -75,20 +72,12 @@ public class DomainController {
 
     @GetMapping("/{id}")
     public ResponseEntity<DomainEntity> retrieve(@PathVariable String id) {
-        try {
-            return ok(domainService.retrieve(id).orElseThrow(NoSuchElementException::new));
-        } catch (NoSuchElementException e) {
-            return notFound().build();
-        }
+        return ok(domainService.retrieve(id));
     }
 
     @PutMapping("/edit")
     public ResponseEntity<DomainEntity> update(@RequestBody DomainUpdateDTO domainUpdate) {
-        try {
-            return ok(domainService.update(domainUpdate));
-        } catch (NoSuchElementException e) {
-            return notFound().build();
-        }
+        return ok(domainService.update(domainUpdate));
     }
 
     @GetMapping("/{domainName}/reserved")

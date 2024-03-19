@@ -7,6 +7,7 @@ import com.staketab.minanames.dto.request.BaseRequest;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
 import com.staketab.minanames.entity.dto.DomainStatus;
+import com.staketab.minanames.exception.NotFoundException;
 import com.staketab.minanames.repository.DomainRepository;
 import com.staketab.minanames.service.abstraction.DomainService;
 import com.staketab.minanames.service.abstraction.TxService;
@@ -55,13 +56,20 @@ public class DomainServiceImpl implements DomainService {
     }
 
     @Override
-    public Optional<DomainEntity> retrieve(String id) {
-        return domainRepository.findById(id);
+    public DomainEntity retrieve(String id) {
+        return domainRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(String.format("Domain doesn't found by id: %s", id)));
     }
 
     @Override
     public DomainEntity update(DomainUpdateDTO domainUpdateDTO) {
-        return null;
+        Optional<DomainEntity> optionalDomainEntity = domainRepository.findById(domainUpdateDTO.getId());
+        if (optionalDomainEntity.isEmpty()) {
+            throw new NotFoundException(String.format("Domain doesn't found by id: %s", domainUpdateDTO.getId()));
+        }
+        DomainEntity domainEntity = optionalDomainEntity.get();
+        domainEntity.setDomainImg(domainUpdateDTO.getImg());
+        return domainRepository.save(domainEntity);
     }
 
     @Override
