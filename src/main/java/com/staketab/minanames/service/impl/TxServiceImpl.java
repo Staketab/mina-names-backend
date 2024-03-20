@@ -1,5 +1,6 @@
 package com.staketab.minanames.service.impl;
 
+import com.staketab.minanames.entity.DomainEntity;
 import com.staketab.minanames.entity.PayableTransactionEntity;
 import com.staketab.minanames.entity.dto.TxStatus;
 import com.staketab.minanames.minascan.TransactionRepository;
@@ -37,9 +38,15 @@ public class TxServiceImpl implements TxService {
     public void checkTransactions() {
         List<PayableTransactionEntity> pendingTxs = payableTransactionRepository.findAllByTxStatus(TxStatus.PENDING);
         Map<TxStatus, List<PayableTransactionEntity>> txStatusListMap = generateMapOfFailedAndAppliedTxs(pendingTxs);
+        List<PayableTransactionEntity> appliedTxs = removeTxsWithIncorrectAmount(txStatusListMap.get(TxStatus.APPLIED));
 
-        applyReservedTxs(txStatusListMap.get(TxStatus.APPLIED));
         domainRepository.deleteAllByTransactionIn(txStatusListMap.get(TxStatus.FAILED));
+        sendTxsToZkCloudWorker(appliedTxs);
+        applyReservedTxs(appliedTxs);
+    }
+
+    private void sendTxsToZkCloudWorker(List<PayableTransactionEntity> appliedTxs) {
+        //todo add client to zkCloudWorker
     }
 
     private void applyReservedTxs(List<PayableTransactionEntity> pendingTxs) {
@@ -48,6 +55,23 @@ public class TxServiceImpl implements TxService {
                 .toList();
 
         payableTransactionRepository.saveAll(appliedTxs);
+    }
+
+    private List<PayableTransactionEntity> removeTxsWithIncorrectAmount(List<PayableTransactionEntity> appliedTxs) {
+        Map<String, PayableTransactionEntity> mapAppliedTxs = appliedTxs.stream()
+                .collect(Collectors.toMap(PayableTransactionEntity::getTxHash, Function.identity()));
+        List<DomainEntity> domains = domainRepository.findAllByTransactionIn(appliedTxs);
+        for (DomainEntity domain : domains) {
+            String txHash = domain.getTransaction().getTxHash();
+            PayableTransactionEntity payableTransactionEntity = mapAppliedTxs.get(txHash);
+            if (payableTransactionEntity.getTxAmount() < domain.getAmount()) {
+                mapAppliedTxs.remove(txHash);
+            }
+        }
+
+        appliedTxs.removeAll(mapAppliedTxs.values());
+        domainRepository.deleteAllByTransactionIn(appliedTxs);
+        return List.copyOf(mapAppliedTxs.values());
     }
 
     private Map<TxStatus, List<PayableTransactionEntity>> generateMapOfFailedAndAppliedTxs(List<PayableTransactionEntity> payableTransactions) {
