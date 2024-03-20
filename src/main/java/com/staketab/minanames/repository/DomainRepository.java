@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -34,6 +35,8 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
     Optional<DomainEntity> findDomainEntityByDomainName(String domainName);
 
     void deleteAllByTransactionIn(Collection<PayableTransactionEntity> transaction);
+
+    List<DomainEntity> findAllByTransactionIn(Collection<PayableTransactionEntity> transaction);
 
     @Modifying
     @Query(nativeQuery = true,
