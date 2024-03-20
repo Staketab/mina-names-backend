@@ -13,6 +13,7 @@ public class DomainDTO {
     private String ownerAddress;
     private String transaction;
     private String domainImg;
+    private String domainName;
     private BigDecimal amount;
     private Long reservationTimestamp;
     private Integer expirationTime;
