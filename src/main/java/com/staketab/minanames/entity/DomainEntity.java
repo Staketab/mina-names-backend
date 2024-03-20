@@ -4,7 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.staketab.minanames.entity.dto.DomainStatus;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,12 +34,12 @@ public class DomainEntity {
     private String ownerAddress;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="transaction", nullable=false)
-    @JsonIdentityInfo(generator= ObjectIdGenerators.PropertyGenerator.class, property="txHash")
-    @JsonIdentityReference(alwaysAsId=true)
+    @JoinColumn(name = "transaction", nullable = false)
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "txHash")
+    @JsonIdentityReference(alwaysAsId = true)
     private PayableTransactionEntity transaction;
 
-    @Column(name = "name", columnDefinition = "TEXT")
+    @Column(name = "name", columnDefinition = "TEXT", unique = true)
     private String domainName;
     @Column(name = "img", columnDefinition = "TEXT")
     private String domainImg;

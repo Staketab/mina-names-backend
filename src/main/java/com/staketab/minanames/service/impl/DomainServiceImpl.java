@@ -8,6 +8,7 @@ import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
 import com.staketab.minanames.entity.dto.DomainDTO;
 import com.staketab.minanames.entity.dto.DomainStatus;
+import com.staketab.minanames.exception.DuplicateKeyException;
 import com.staketab.minanames.exception.NotFoundException;
 import com.staketab.minanames.repository.DomainRepository;
 import com.staketab.minanames.service.DomainService;
@@ -22,7 +23,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import static com.staketab.minanames.utils.Constants.DEFAULT_DENOMINATION;
 import static com.staketab.minanames.utils.Constants.MINA_DENOMINATION;
@@ -47,17 +47,12 @@ public class DomainServiceImpl implements DomainService {
 
     @Override
     public DomainEntity create(DomainReservationDTO request) {
-        DomainEntity domain = DomainEntity.builder()
-                .ownerAddress(request.getOwnerAddress())
-                .transaction(txService.getOrCreate(request.getTxHash()))
-                .domainName(request.getDomainName())
-                .amount(Math.round(request.getAmount() * MINA_DENOMINATION))
-                .expirationTime(request.getExpirationTime())
-                .reservationTimestamp(System.currentTimeMillis())
-                .domainStatus(DomainStatus.PENDING)
-                .isSendToCloudWorker(false)
-                .isDefault(false)
-                .build();
+        String domainName = request.getDomainName();
+        domainRepository.findDomainEntityByDomainName(domainName)
+                .ifPresent(domainEntity -> {
+                    throw new DuplicateKeyException(String.format("Domain already exist with name: %s", domainName));
+                });
+        DomainEntity domain = buildDomainEntity(request);
         return domainRepository.save(domain);
     }
 
@@ -65,18 +60,17 @@ public class DomainServiceImpl implements DomainService {
     public DomainDTO retrieve(String id) {
         return domainRepository.findById(id)
                 .map(this::buildDomainDTO)
-                .orElseThrow(() -> new NotFoundException(String.format("Domain doesn't found by id: %s", id)));
+                .orElseThrow(() -> new NotFoundException(String.format("Domain isn’t found by id: %s", id)));
     }
 
     @Override
     public DomainEntity update(DomainUpdateDTO domainUpdateDTO) {
-        Optional<DomainEntity> optionalDomainEntity = domainRepository.findById(domainUpdateDTO.getId());
-        if (optionalDomainEntity.isEmpty()) {
-            throw new NotFoundException(String.format("Domain doesn't found by id: %s", domainUpdateDTO.getId()));
-        }
-        DomainEntity domainEntity = optionalDomainEntity.get();
-        domainEntity.setDomainImg(domainUpdateDTO.getImg());
-        return domainRepository.save(domainEntity);
+        return domainRepository.findById(domainUpdateDTO.getId())
+                .map(domainEntity -> {
+                    domainEntity.setDomainImg(domainUpdateDTO.getImg());
+                    return domainRepository.save(domainEntity);
+                })
+                .orElseThrow(() -> new NotFoundException("Domain not found by id: " + domainUpdateDTO.getId()));
     }
 
     @Override
@@ -102,6 +96,20 @@ public class DomainServiceImpl implements DomainService {
     private ReservedDomainDTO mapToReservedDomainDTO(DomainEntity domainEntity) {
         return ReservedDomainDTO.builder()
                 .id(domainEntity.getId())
+                .build();
+    }
+
+    private DomainEntity buildDomainEntity(DomainReservationDTO request) {
+        return DomainEntity.builder()
+                .ownerAddress(request.getOwnerAddress())
+                .transaction(txService.getOrCreate(request.getTxHash()))
+                .domainName(request.getDomainName())
+                .amount(Math.round(request.getAmount() * MINA_DENOMINATION))
+                .expirationTime(request.getExpirationTime())
+                .reservationTimestamp(System.currentTimeMillis())
+                .domainStatus(DomainStatus.PENDING)
+                .isSendToCloudWorker(false)
+                .isDefault(false)
                 .build();
     }
 
