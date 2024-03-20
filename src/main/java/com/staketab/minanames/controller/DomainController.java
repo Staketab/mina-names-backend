@@ -64,11 +64,7 @@ public class DomainController {
 
     @PostMapping("/save")
     public ResponseEntity<DomainEntity> create(@RequestBody DomainReservationDTO domainRequest) {
-        try {
-            return ok(domainService.create(domainRequest));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        return ok(domainService.create(domainRequest));
     }
 
     @GetMapping("/{id}")
