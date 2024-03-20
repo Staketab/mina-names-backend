@@ -117,6 +117,7 @@ public class DomainServiceImpl implements DomainService {
         return DomainDTO.builder()
                 .id(domainEntity.getId())
                 .domainImg(domainEntity.getDomainImg())
+                .domainName(domainEntity.getDomainName())
                 .amount(BigDecimal.valueOf(domainEntity.getAmount()).divide(DEFAULT_DENOMINATION, RoundingMode.HALF_UP))
                 .startTimestamp(domainEntity.getStartTimestamp())
                 .domainStatus(domainEntity.getDomainStatus())
