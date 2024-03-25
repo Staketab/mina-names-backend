@@ -11,11 +11,18 @@ import org.springframework.data.domain.Page;
 
 public interface DomainService {
     Page<DomainEntity> findAllByPageable(BaseRequest request, SearchParams searchParams);
+
     Page<DomainEntity> findAllByAccountPageable(BaseRequest request, String accountAddress, SearchParams searchParams);
+
     DomainEntity create(DomainReservationDTO domainRequest);
+
     DomainDTO retrieve(String id);
+
     DomainEntity update(DomainUpdateDTO domainUpdateDTO);
+
     ReservedDomainDTO isNameReserved(String name);
+
     Boolean setDefaultDomain(String id);
+
     void removeReservedDomains();
 }

@@ -26,16 +26,16 @@ import static io.swagger.v3.oas.models.security.SecurityScheme.In.HEADER;
                 description = "Production"
         ))
 public class SwaggerConfig {
-        @Bean
-        public OpenAPI customizeOpenAPI() {
-                final String securitySchemeName = API_KEY_HEADER;
-                return new OpenAPI()
-                        .addSecurityItem(new SecurityRequirement()
-                                .addList(securitySchemeName))
-                        .components(new Components()
-                                .addSecuritySchemes(securitySchemeName, new SecurityScheme()
-                                        .name(securitySchemeName)
-                                        .type(SecurityScheme.Type.APIKEY)
-                                        .in(HEADER)));
-        }
+    @Bean
+    public OpenAPI customizeOpenAPI() {
+        final String securitySchemeName = API_KEY_HEADER;
+        return new OpenAPI()
+                .addSecurityItem(new SecurityRequirement()
+                        .addList(securitySchemeName))
+                .components(new Components()
+                        .addSecuritySchemes(securitySchemeName, new SecurityScheme()
+                                .name(securitySchemeName)
+                                .type(SecurityScheme.Type.APIKEY)
+                                .in(HEADER)));
+    }
 }

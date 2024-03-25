@@ -6,12 +6,15 @@ import com.staketab.minanames.dto.ReservedDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
+import com.staketab.minanames.entity.LogInfoEntity;
 import com.staketab.minanames.entity.dto.DomainDTO;
 import com.staketab.minanames.entity.dto.DomainStatus;
+import com.staketab.minanames.entity.dto.LogInfoStatus;
 import com.staketab.minanames.exception.DuplicateKeyException;
 import com.staketab.minanames.exception.NotFoundException;
 import com.staketab.minanames.repository.DomainRepository;
 import com.staketab.minanames.service.DomainService;
+import com.staketab.minanames.service.LogInfoService;
 import com.staketab.minanames.service.TxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +26,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 
+import static com.staketab.minanames.entity.dto.LogInfoStatus.CREATE;
+import static com.staketab.minanames.entity.dto.LogInfoStatus.REMOVE_RESERVATION;
 import static com.staketab.minanames.utils.Constants.DEFAULT_DENOMINATION;
 import static com.staketab.minanames.utils.Constants.MINA_DENOMINATION;
 
@@ -32,6 +38,7 @@ import static com.staketab.minanames.utils.Constants.MINA_DENOMINATION;
 @Slf4j
 public class DomainServiceImpl implements DomainService {
 
+    private final LogInfoService logInfoService;
     private final DomainRepository domainRepository;
     private final TxService txService;
 
@@ -53,6 +60,7 @@ public class DomainServiceImpl implements DomainService {
                     throw new DuplicateKeyException(String.format("Domain already exist with name: %s", domainName));
                 });
         DomainEntity domain = buildDomainEntity(request);
+        logInfoService.saveLogInfo(buildLogInfoEntity(domain, CREATE));
         return domainRepository.save(domain);
     }
 
@@ -90,7 +98,13 @@ public class DomainServiceImpl implements DomainService {
     public void removeReservedDomains() {
         LocalDateTime localDateTime = LocalDateTime.now().minusDays(1);
         long currentTimestamp = Timestamp.valueOf(localDateTime).getTime();
-        domainRepository.deleteAllByReservationTimestampLessThan(currentTimestamp);
+        List<DomainEntity> domainEntities = domainRepository.findAllByReservationTimestampLessThan(currentTimestamp);
+        List<LogInfoEntity> logInfoEntities = domainEntities
+                .stream()
+                .map(domainEntity -> buildLogInfoEntity(domainEntity, REMOVE_RESERVATION))
+                .toList();
+        logInfoService.saveAllLogInfos(logInfoEntities);
+        domainRepository.deleteAll(domainEntities);
     }
 
     private ReservedDomainDTO mapToReservedDomainDTO(DomainEntity domainEntity) {
@@ -127,6 +141,16 @@ public class DomainServiceImpl implements DomainService {
                 .ownerAddress(domainEntity.getOwnerAddress())
                 .reservationTimestamp(domainEntity.getReservationTimestamp())
                 .transaction(domainEntity.getTransaction().getTxHash())
+                .build();
+    }
+
+    private LogInfoEntity buildLogInfoEntity(DomainEntity domainEntity, LogInfoStatus status) {
+        return LogInfoEntity.builder()
+                .logInfoStatus(status)
+                .txHash(domainEntity.getTransaction().getTxHash())
+                .domainName(domainEntity.getDomainName())
+                .amount(domainEntity.getAmount())
+                .ownerAddress(domainEntity.getOwnerAddress())
                 .build();
     }
 }

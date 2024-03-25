@@ -17,6 +17,6 @@ public class DomainScheduler {
 
     @Scheduled(fixedDelayString = "${scheduled.domain.upload-mills}")
     public void removeReservedDomains() {
-         domainService.removeReservedDomains();
+        domainService.removeReservedDomains();
     }
 }

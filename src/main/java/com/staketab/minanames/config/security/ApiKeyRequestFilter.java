@@ -34,7 +34,7 @@ public class ApiKeyRequestFilter extends GenericFilterBean {
         String path = req.getRequestURI();
         String key = req.getHeader(API_KEY_HEADER) == null ? "" : req.getHeader(API_KEY_HEADER);
 
-        if(!path.startsWith(API_CREATE) && !path.startsWith(API_UPDATE)){
+        if (!path.startsWith(API_CREATE) && !path.startsWith(API_UPDATE)) {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
@@ -43,7 +43,7 @@ public class ApiKeyRequestFilter extends GenericFilterBean {
         HttpServletResponse resp = (HttpServletResponse) servletResponse;
 
         Optional<ApiKeyEntity> apiKey = getApiKey(key);
-        if(apiKey.isPresent()) {
+        if (apiKey.isPresent()) {
             filterChain.doFilter(servletRequest, servletResponse);
         } else {
             logErrorToUser("Invalid API key", HttpServletResponse.SC_UNAUTHORIZED, resp, servletResponse);
