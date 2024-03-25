@@ -1,0 +1,48 @@
+package com.staketab.minanames.entity;
+
+import com.staketab.minanames.entity.dto.LogInfoStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UuidGenerator;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "log_info")
+public class LogInfoEntity {
+
+    @Id
+    @UuidGenerator
+    private String id;
+
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private LogInfoStatus logInfoStatus;
+
+    @Column(name = "owner_address", columnDefinition = "TEXT")
+    private String ownerAddress;
+
+    @Column(name = "tx_hash", columnDefinition = "TEXT")
+    private String txHash;
+
+    @Column(name = "domain_name", columnDefinition = "TEXT")
+    private String domainName;
+
+    private Long amount;
+
+    @CreationTimestamp
+    private LocalDateTime date;
+}
