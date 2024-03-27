@@ -1,4 +1,4 @@
-package com.staketab.minanames.entity.dto;
+package com.staketab.minanames.entity;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -7,5 +7,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum DomainStatus {
     PENDING,
-    ACTIVE
+    ACTIVE,
+    RESERVED
 }

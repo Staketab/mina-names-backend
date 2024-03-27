@@ -18,5 +18,6 @@ public class CheckerReservedTransactionScheduler {
     @Scheduled(fixedDelayString = "${scheduled.checker-tx-reserve.upload-mills}")
     public void checkReservedTxs() {
         txService.checkTransactions();
+        txService.deleteTxsWithIncorrectAmount();
     }
 }

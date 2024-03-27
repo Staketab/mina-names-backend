@@ -1,10 +1,7 @@
 package com.staketab.minanames.entity;
 
-import com.staketab.minanames.entity.dto.LogInfoStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -28,9 +25,8 @@ public class LogInfoEntity {
     @UuidGenerator
     private String id;
 
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private LogInfoStatus logInfoStatus;
+    @Column(name = "status", columnDefinition = "TEXT")
+    private String logInfoStatus;
 
     @Column(name = "owner_address", columnDefinition = "TEXT")
     private String ownerAddress;

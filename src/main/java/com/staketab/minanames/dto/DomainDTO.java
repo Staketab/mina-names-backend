@@ -1,5 +1,6 @@
-package com.staketab.minanames.entity.dto;
+package com.staketab.minanames.dto;
 
+import com.staketab.minanames.entity.DomainStatus;
 import lombok.Builder;
 import lombok.Data;
 
