@@ -1,6 +1,5 @@
 package com.staketab.minanames.entity;
 
-import com.staketab.minanames.entity.dto.TxStatus;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,4 +39,7 @@ public class PayableTransactionEntity {
 
     @Column(name = "amount")
     private Long txAmount;
+
+    @Column(name = "count_domains")
+    private Integer countDomains;
 }

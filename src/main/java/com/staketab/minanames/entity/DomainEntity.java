@@ -3,12 +3,9 @@ package com.staketab.minanames.entity;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.staketab.minanames.entity.dto.DomainStatus;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -34,7 +31,7 @@ public class DomainEntity {
     private String ownerAddress;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "transaction", nullable = false)
+    @JoinColumn(name = "transaction")
     @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "txHash")
     @JsonIdentityReference(alwaysAsId = true)
     private PayableTransactionEntity transaction;
@@ -54,8 +51,7 @@ public class DomainEntity {
     private Long startTimestamp;  // time when tx become applied
 
     @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private DomainStatus domainStatus;
+    private String domainStatus;
 
     @Column(name = "is_send_to_cloud_worker")
     private Boolean isSendToCloudWorker;

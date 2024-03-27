@@ -1,15 +1,20 @@
 package com.staketab.minanames.service.impl;
 
+import com.staketab.minanames.dto.ApplyReservedDomainDTO;
+import com.staketab.minanames.dto.CartReservedDomainDTO;
+import com.staketab.minanames.dto.DomainDTO;
 import com.staketab.minanames.dto.DomainReservationDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
 import com.staketab.minanames.dto.ReservedDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
+import com.staketab.minanames.dto.request.DomainCartReservationDTO;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
+import com.staketab.minanames.entity.DomainStatus;
 import com.staketab.minanames.entity.LogInfoEntity;
-import com.staketab.minanames.entity.dto.DomainDTO;
-import com.staketab.minanames.entity.dto.DomainStatus;
-import com.staketab.minanames.entity.dto.LogInfoStatus;
+import com.staketab.minanames.entity.LogInfoStatus;
+import com.staketab.minanames.entity.PayableTransactionEntity;
+import com.staketab.minanames.entity.TxStatus;
 import com.staketab.minanames.exception.DuplicateKeyException;
 import com.staketab.minanames.exception.NotFoundException;
 import com.staketab.minanames.repository.DomainRepository;
@@ -27,9 +32,17 @@ import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import static com.staketab.minanames.entity.dto.LogInfoStatus.CREATE;
-import static com.staketab.minanames.entity.dto.LogInfoStatus.REMOVE_RESERVATION;
+import static com.staketab.minanames.entity.DomainStatus.PENDING;
+import static com.staketab.minanames.entity.DomainStatus.RESERVED;
+import static com.staketab.minanames.entity.LogInfoStatus.APPLY_CART_RESERVED_DOMAINS;
+import static com.staketab.minanames.entity.LogInfoStatus.CART_RESERVE;
+import static com.staketab.minanames.entity.LogInfoStatus.CREATE;
+import static com.staketab.minanames.entity.LogInfoStatus.DELETE_CART_RESERVE;
+import static com.staketab.minanames.entity.LogInfoStatus.REMOVE_RESERVATION;
 import static com.staketab.minanames.utils.Constants.DEFAULT_DENOMINATION;
 import static com.staketab.minanames.utils.Constants.MINA_DENOMINATION;
 
@@ -62,6 +75,42 @@ public class DomainServiceImpl implements DomainService {
         DomainEntity domain = buildDomainEntity(request);
         logInfoService.saveLogInfo(buildLogInfoEntity(domain, CREATE));
         return domainRepository.save(domain);
+    }
+
+    @Override
+    public DomainEntity reserve(DomainCartReservationDTO request) {
+        String domainName = request.getDomainName();
+        domainRepository.findDomainEntityByDomainName(domainName)
+                .ifPresent(domainEntity -> {
+                    throw new DuplicateKeyException(String.format("Domain already exist with name: %s", domainName));
+                });
+        DomainEntity domain = buildDomainEntityReserve(request);
+        logInfoService.saveLogInfo(buildLogInfoEntity(domain, CART_RESERVE));
+        return domainRepository.save(domain);
+    }
+
+    @Override
+    @Transactional
+    public void applyReservedDomain(ApplyReservedDomainDTO domainRequest) {
+        Map<String, CartReservedDomainDTO> cartDomainMap = domainRequest.getDomains()
+                .stream()
+                .collect(Collectors.toMap(CartReservedDomainDTO::getDomainName, Function.identity()));
+        PayableTransactionEntity payableTransaction = txService.getOrCreate(domainRequest.getTxHash(), domainRequest.getDomains().size(), TxStatus.PENDING);
+        List<DomainEntity> domains = domainRepository.findAllByOwnerAddressAndDomainNameIn(domainRequest.getOwnerAddress(), cartDomainMap.keySet());
+        List<String> txHashes = domains.stream()
+                .map(DomainEntity::getTransaction)
+                .map(PayableTransactionEntity::getTxHash)
+                .toList();
+        saveUpdatedDomains(domains, cartDomainMap, payableTransaction);
+        txService.deleteTxs(txHashes);
+    }
+
+    @Override
+    public void removeReservedDomain(String id) {
+        domainRepository.findById(id).ifPresent(domainEntity -> {
+            logInfoService.saveLogInfo(buildLogInfoEntity(domainEntity, DELETE_CART_RESERVE));
+            domainRepository.delete(domainEntity);
+        });
     }
 
     @Override
@@ -107,6 +156,22 @@ public class DomainServiceImpl implements DomainService {
         domainRepository.deleteAll(domainEntities);
     }
 
+    private void saveUpdatedDomains(List<DomainEntity> domains, Map<String, CartReservedDomainDTO> cartDomainMap, PayableTransactionEntity payableTransaction) {
+        List<DomainEntity> domainEntities = domains
+                .stream()
+                .peek(domainEntity -> {
+                    CartReservedDomainDTO cartReservedDomainDTO = cartDomainMap.get(domainEntity.getDomainName());
+                    domainEntity.setAmount(Math.round(cartReservedDomainDTO.getAmount() * MINA_DENOMINATION));
+                    domainEntity.setTransaction(payableTransaction);
+                    domainEntity.setDomainStatus(PENDING.name());
+                }).toList();
+        List<LogInfoEntity> logInfoEntities = domainEntities.stream()
+                .map(domainEntity -> buildLogInfoEntity(domainEntity, APPLY_CART_RESERVED_DOMAINS))
+                .toList();
+        logInfoService.saveAllLogInfos(logInfoEntities);
+        domainRepository.saveAll(domainEntities);
+    }
+
     private ReservedDomainDTO mapToReservedDomainDTO(DomainEntity domainEntity) {
         return ReservedDomainDTO.builder()
                 .id(domainEntity.getId())
@@ -114,14 +179,30 @@ public class DomainServiceImpl implements DomainService {
     }
 
     private DomainEntity buildDomainEntity(DomainReservationDTO request) {
+        PayableTransactionEntity tx = txService.getOrCreate(request.getTxHash(), 1, TxStatus.PENDING);
         return DomainEntity.builder()
                 .ownerAddress(request.getOwnerAddress())
-                .transaction(txService.getOrCreate(request.getTxHash()))
+                .transaction(tx)
                 .domainName(request.getDomainName())
                 .amount(Math.round(request.getAmount() * MINA_DENOMINATION))
                 .expirationTime(request.getExpirationTime())
                 .reservationTimestamp(System.currentTimeMillis())
-                .domainStatus(DomainStatus.PENDING)
+                .domainStatus(PENDING.name())
+                .isSendToCloudWorker(false)
+                .isDefault(false)
+                .build();
+    }
+
+    private DomainEntity buildDomainEntityReserve(DomainCartReservationDTO request) {
+        PayableTransactionEntity tx = txService.getOrCreate(String.format("%s_%s", request.getDomainName(), RESERVED.name()), 1, TxStatus.RESERVED);
+        return DomainEntity.builder()
+                .ownerAddress(request.getOwnerAddress())
+                .domainName(request.getDomainName())
+                .transaction(tx)
+                .amount(Math.round(request.getAmount() * MINA_DENOMINATION))
+                .expirationTime(request.getExpirationTime())
+                .reservationTimestamp(System.currentTimeMillis())
+                .domainStatus(RESERVED.name())
                 .isSendToCloudWorker(false)
                 .isDefault(false)
                 .build();
@@ -134,7 +215,7 @@ public class DomainServiceImpl implements DomainService {
                 .domainName(domainEntity.getDomainName())
                 .amount(BigDecimal.valueOf(domainEntity.getAmount()).divide(DEFAULT_DENOMINATION, RoundingMode.HALF_UP))
                 .startTimestamp(domainEntity.getStartTimestamp())
-                .domainStatus(domainEntity.getDomainStatus())
+                .domainStatus(DomainStatus.valueOf(domainEntity.getDomainStatus()))
                 .expirationTime(domainEntity.getExpirationTime())
                 .isDefault(domainEntity.getIsDefault())
                 .isSendToCloudWorker(domainEntity.getIsSendToCloudWorker())
@@ -146,7 +227,7 @@ public class DomainServiceImpl implements DomainService {
 
     private LogInfoEntity buildLogInfoEntity(DomainEntity domainEntity, LogInfoStatus status) {
         return LogInfoEntity.builder()
-                .logInfoStatus(status)
+                .logInfoStatus(status.name())
                 .txHash(domainEntity.getTransaction().getTxHash())
                 .domainName(domainEntity.getDomainName())
                 .amount(domainEntity.getAmount())

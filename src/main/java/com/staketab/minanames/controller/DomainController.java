@@ -1,13 +1,15 @@
 package com.staketab.minanames.controller;
 
+import com.staketab.minanames.dto.ApplyReservedDomainDTO;
+import com.staketab.minanames.dto.DomainDTO;
 import com.staketab.minanames.dto.DomainReservationDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
 import com.staketab.minanames.dto.ReservedDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
+import com.staketab.minanames.dto.request.DomainCartReservationDTO;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.dto.request.sort.DomainsSortColumn;
 import com.staketab.minanames.entity.DomainEntity;
-import com.staketab.minanames.entity.dto.DomainDTO;
 import com.staketab.minanames.service.DomainService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -65,6 +68,21 @@ public class DomainController {
     @PostMapping("/save")
     public ResponseEntity<DomainEntity> create(@RequestBody DomainReservationDTO domainRequest) {
         return ok(domainService.create(domainRequest));
+    }
+
+    @PostMapping("/reserve")
+    public ResponseEntity<DomainEntity> reserve(@RequestBody DomainCartReservationDTO domainRequest) {
+        return ok(domainService.reserve(domainRequest));
+    }
+
+    @PostMapping("/reserve/apply")
+    public void applyReservedDomains(@RequestBody ApplyReservedDomainDTO domainRequest) {
+        domainService.applyReservedDomain(domainRequest);
+    }
+
+    @DeleteMapping("/reserve/{id}")
+    public void deleteReservedDomain(@PathVariable String id) {
+        domainService.removeReservedDomain(id);
     }
 
     @GetMapping("/{id}")

@@ -2,9 +2,9 @@ package com.staketab.minanames.service.impl;
 
 import com.staketab.minanames.entity.DomainEntity;
 import com.staketab.minanames.entity.LogInfoEntity;
+import com.staketab.minanames.entity.LogInfoStatus;
 import com.staketab.minanames.entity.PayableTransactionEntity;
-import com.staketab.minanames.entity.dto.LogInfoStatus;
-import com.staketab.minanames.entity.dto.TxStatus;
+import com.staketab.minanames.entity.TxStatus;
 import com.staketab.minanames.minascan.TransactionRepository;
 import com.staketab.minanames.minascan.TxProjection;
 import com.staketab.minanames.repository.DomainRepository;
@@ -22,9 +22,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.staketab.minanames.entity.dto.LogInfoStatus.APPLIED;
-import static com.staketab.minanames.entity.dto.LogInfoStatus.FAILED;
-import static com.staketab.minanames.entity.dto.LogInfoStatus.INCORRECT_AMOUNT;
+import static com.staketab.minanames.entity.LogInfoStatus.APPLIED;
+import static com.staketab.minanames.entity.LogInfoStatus.FAILED;
+import static com.staketab.minanames.entity.LogInfoStatus.INCORRECT_AMOUNT;
 
 @Slf4j
 @Service
@@ -37,8 +37,8 @@ public class TxServiceImpl implements TxService {
     private final DomainRepository domainRepository;
 
     @Override
-    public PayableTransactionEntity getOrCreate(String txHash) {
-        return payableTransactionRepository.findById(txHash).orElseGet(() -> createTx(txHash));
+    public PayableTransactionEntity getOrCreate(String txHash, int countDomains, TxStatus status) {
+        return payableTransactionRepository.findById(txHash).orElseGet(() -> createTx(txHash, countDomains, status));
     }
 
     @Override
@@ -46,12 +46,28 @@ public class TxServiceImpl implements TxService {
     public void checkTransactions() {
         List<PayableTransactionEntity> pendingTxs = payableTransactionRepository.findAllByTxStatus(TxStatus.PENDING);
         Map<TxStatus, List<PayableTransactionEntity>> txStatusListMap = generateMapOfFailedAndAppliedTxs(pendingTxs);
-        List<PayableTransactionEntity> appliedTxs = removeTxsWithIncorrectAmount(txStatusListMap.get(TxStatus.APPLIED));
+        List<PayableTransactionEntity> appliedTxs = txStatusListMap.get(TxStatus.APPLIED);
         List<PayableTransactionEntity> failedTxs = txStatusListMap.get(TxStatus.FAILED);
+        List<PayableTransactionEntity> correctAppliedTxs = txsWithoutIncorrectAmount(appliedTxs);
 
         removeFailedTxs(failedTxs);
-        sendTxsToZkCloudWorker(appliedTxs);
-        applyReservedTxs(appliedTxs);
+        sendTxsToZkCloudWorker(correctAppliedTxs);
+        applyReservedTxs(correctAppliedTxs);
+    }
+
+    @Override
+    @Transactional
+    public void deleteTxsWithIncorrectAmount() {
+        List<PayableTransactionEntity> pendingTxs = payableTransactionRepository.findAllByTxStatus(TxStatus.PENDING);
+        List<PayableTransactionEntity> correctAppliedTxs = txsWithIncorrectAmount(pendingTxs);
+        pendingTxs.retainAll(correctAppliedTxs);
+        saveLogInfo(pendingTxs, INCORRECT_AMOUNT);
+        domainRepository.deleteAllByTransactionIn(pendingTxs);
+    }
+
+    @Override
+    public void deleteTxs(List<String> txHashes) {
+        payableTransactionRepository.deleteAllByTxHashIn(txHashes);
     }
 
     private void sendTxsToZkCloudWorker(List<PayableTransactionEntity> appliedTxs) {
@@ -71,30 +87,72 @@ public class TxServiceImpl implements TxService {
         domainRepository.deleteAllByTransactionIn(failedTxs);
     }
 
-    private List<PayableTransactionEntity> removeTxsWithIncorrectAmount(List<PayableTransactionEntity> appliedTxs) {
-        Map<String, PayableTransactionEntity> mapAppliedTxs = appliedTxs.stream()
-                .collect(Collectors.toMap(PayableTransactionEntity::getTxHash, Function.identity()));
-        List<DomainEntity> domains = domainRepository.findAllByTransactionIn(appliedTxs);
-        for (DomainEntity domain : domains) {
-            String txHash = domain.getTransaction().getTxHash();
-            PayableTransactionEntity payableTransactionEntity = mapAppliedTxs.get(txHash);
-            if (payableTransactionEntity.getTxAmount() < domain.getAmount()) {
-                mapAppliedTxs.remove(txHash);
-            }
-        }
+    private List<PayableTransactionEntity> txsWithoutIncorrectAmount(List<PayableTransactionEntity> appliedTxs) {
+        List<PayableTransactionEntity> multipleTxs = appliedTxs.stream()
+                .filter(tx -> tx.getCountDomains() > 1)
+                .toList();
 
-        appliedTxs.removeAll(mapAppliedTxs.values());
-        saveLogInfo(appliedTxs, INCORRECT_AMOUNT);
-        domainRepository.deleteAllByTransactionIn(appliedTxs);
-        return List.copyOf(mapAppliedTxs.values());
+        Map<String, Long> txHashAndAmountMap = calculateTotalAmountByTransaction(domainRepository.findAllByTransactionIn(multipleTxs));
+        appliedTxs.removeIf(tx -> {
+            Long amount = txHashAndAmountMap.get(tx.getTxHash());
+            return amount != null && tx.getTxAmount() < amount;
+        });
+
+        Map<String, PayableTransactionEntity> appliedTxsMap = appliedTxs.stream()
+                .collect(Collectors.toMap(PayableTransactionEntity::getTxHash, Function.identity()));
+
+        domainRepository.findAllByTransactionIn(appliedTxs).forEach(domain -> {
+            String txHash = domain.getTransaction().getTxHash();
+            PayableTransactionEntity tx = appliedTxsMap.get(txHash);
+            if (tx != null && tx.getTxAmount() < domain.getAmount()) {
+                appliedTxsMap.remove(txHash);
+            }
+        });
+
+        appliedTxs.retainAll(appliedTxsMap.values());
+        return List.copyOf(appliedTxsMap.values());
     }
 
-    private void saveLogInfo(List<PayableTransactionEntity> appliedTxs, LogInfoStatus status) {
-        List<LogInfoEntity> failedDomains = domainRepository.findAllByTransactionIn(appliedTxs)
+    private List<PayableTransactionEntity> txsWithIncorrectAmount(List<PayableTransactionEntity> appliedTxs) {
+        List<PayableTransactionEntity> multipleTxs = appliedTxs.stream()
+                .filter(tx -> tx.getCountDomains() > 1)
+                .toList();
+
+        Map<String, Long> txHashAndAmountMap = calculateTotalAmountByTransaction(domainRepository.findAllByTransactionIn(multipleTxs));
+        appliedTxs.removeIf(tx -> {
+            Long amount = txHashAndAmountMap.get(tx.getTxHash());
+            return amount != null && tx.getTxAmount() >= amount;
+        });
+
+        Map<String, PayableTransactionEntity> appliedTxsMap = appliedTxs.stream()
+                .collect(Collectors.toMap(PayableTransactionEntity::getTxHash, Function.identity()));
+
+        domainRepository.findAllByTransactionIn(appliedTxs).forEach(domain -> {
+            String txHash = domain.getTransaction().getTxHash();
+            PayableTransactionEntity tx = appliedTxsMap.get(txHash);
+            if (tx != null && tx.getTxAmount() >= domain.getAmount()) {
+                appliedTxsMap.remove(txHash);
+            }
+        });
+
+        appliedTxs.retainAll(appliedTxsMap.values());
+        return appliedTxs;
+    }
+
+    public static Map<String, Long> calculateTotalAmountByTransaction(List<DomainEntity> domainList) {
+        return domainList.stream()
+                .collect(Collectors.groupingBy(
+                        domain -> domain.getTransaction().getTxHash(),
+                        Collectors.summingLong(DomainEntity::getAmount)
+                ));
+    }
+
+    private void saveLogInfo(List<PayableTransactionEntity> txs, LogInfoStatus status) {
+        List<LogInfoEntity> logInfoEntities = domainRepository.findAllByTransactionIn(txs)
                 .stream()
                 .map(domainEntity -> buildLogInfoEntity(domainEntity, status))
                 .toList();
-        logInfoService.saveAllLogInfos(failedDomains);
+        logInfoService.saveAllLogInfos(logInfoEntities);
     }
 
     private Map<TxStatus, List<PayableTransactionEntity>> generateMapOfFailedAndAppliedTxs(List<PayableTransactionEntity> payableTransactions) {
@@ -120,16 +178,17 @@ public class TxServiceImpl implements TxService {
         return Map.of(TxStatus.APPLIED, applied, TxStatus.FAILED, failed);
     }
 
-    private PayableTransactionEntity createTx(String txHash) {
+    private PayableTransactionEntity createTx(String txHash, Integer countDomains, TxStatus status) {
         return payableTransactionRepository.save(PayableTransactionEntity.builder()
                 .txHash(txHash)
-                .txStatus(TxStatus.PENDING)
+                .txStatus(status)
+                .countDomains(countDomains)
                 .build());
     }
 
     private LogInfoEntity buildLogInfoEntity(DomainEntity domainEntity, LogInfoStatus status) {
         return LogInfoEntity.builder()
-                .logInfoStatus(status)
+                .logInfoStatus(status.name())
                 .txHash(domainEntity.getTransaction().getTxHash())
                 .domainName(domainEntity.getDomainName())
                 .amount(domainEntity.getAmount())
