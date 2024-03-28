@@ -11,7 +11,8 @@ public enum LogInfoStatus {
     FAILED("Failed tx"),
     INCORRECT_AMOUNT("Incorrect amount"),
     APPLIED("Applied tx"),
-    REMOVE_RESERVATION("Remove reservation");
+    REMOVE_RESERVATION("Remove reservation"),
+    REMOVE_CART_RESERVATION("Remove cart reservation");
 
     private final String message;
 

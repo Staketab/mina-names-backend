@@ -33,4 +33,6 @@ public interface DomainService {
     Boolean setDefaultDomain(String id);
 
     void removeReservedDomains();
+
+    void removeCartReservedDomains();
 }

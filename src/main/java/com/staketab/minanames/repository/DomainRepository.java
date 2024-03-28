@@ -37,9 +37,9 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
                     SELECT *
                     FROM domains
                     where reservation_timestamp < :reservationTimestamp
-                    and status != 'ACTIVE'
+                    and status = :status
                                             """)
-    List<DomainEntity> findAllByReservationTimestampLessThan(Long reservationTimestamp);
+    List<DomainEntity> findAllByReservationTimestampLessThan(Long reservationTimestamp, String status);
 
     @Modifying
     @Query(nativeQuery = true,
