@@ -15,8 +15,13 @@ public class DomainScheduler {
 
     private final DomainService domainService;
 
-    @Scheduled(fixedDelayString = "${scheduled.domain.upload-mills}")
+    @Scheduled(fixedDelayString = "${scheduled.domain.remove-reserve-upload-mills}")
     public void removeReservedDomains() {
         domainService.removeReservedDomains();
+    }
+
+    @Scheduled(fixedDelayString = "${scheduled.domain.remove-cart-reserve-upload-mills}")
+    public void removeCartReservedDomains() {
+        domainService.removeCartReservedDomains();
     }
 }

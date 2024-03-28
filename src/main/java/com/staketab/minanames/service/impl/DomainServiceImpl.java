@@ -42,6 +42,7 @@ import static com.staketab.minanames.entity.LogInfoStatus.APPLY_CART_RESERVED_DO
 import static com.staketab.minanames.entity.LogInfoStatus.CART_RESERVE;
 import static com.staketab.minanames.entity.LogInfoStatus.CREATE;
 import static com.staketab.minanames.entity.LogInfoStatus.DELETE_CART_RESERVE;
+import static com.staketab.minanames.entity.LogInfoStatus.REMOVE_CART_RESERVATION;
 import static com.staketab.minanames.entity.LogInfoStatus.REMOVE_RESERVATION;
 import static com.staketab.minanames.utils.Constants.DEFAULT_DENOMINATION;
 import static com.staketab.minanames.utils.Constants.MINA_DENOMINATION;
@@ -147,10 +148,23 @@ public class DomainServiceImpl implements DomainService {
     public void removeReservedDomains() {
         LocalDateTime localDateTime = LocalDateTime.now().minusDays(1);
         long currentTimestamp = Timestamp.valueOf(localDateTime).getTime();
-        List<DomainEntity> domainEntities = domainRepository.findAllByReservationTimestampLessThan(currentTimestamp);
+        List<DomainEntity> domainEntities = domainRepository.findAllByReservationTimestampLessThan(currentTimestamp, PENDING.name());
         List<LogInfoEntity> logInfoEntities = domainEntities
                 .stream()
                 .map(domainEntity -> buildLogInfoEntity(domainEntity, REMOVE_RESERVATION))
+                .toList();
+        logInfoService.saveAllLogInfos(logInfoEntities);
+        domainRepository.deleteAll(domainEntities);
+    }
+
+    @Override
+    public void removeCartReservedDomains() {
+        LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(10);
+        long currentTimestamp = Timestamp.valueOf(localDateTime).getTime();
+        List<DomainEntity> domainEntities = domainRepository.findAllByReservationTimestampLessThan(currentTimestamp, RESERVED.name());
+        List<LogInfoEntity> logInfoEntities = domainEntities
+                .stream()
+                .map(domainEntity -> buildLogInfoEntity(domainEntity, REMOVE_CART_RESERVATION))
                 .toList();
         logInfoService.saveAllLogInfos(logInfoEntities);
         domainRepository.deleteAll(domainEntities);

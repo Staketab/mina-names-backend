@@ -70,4 +70,5 @@ scheduled:
     upload-mills: 30000 # runs 30 seconds after the previous job
   domain:
     enabled: true
-    upload-mills: 60000 # runs 60 seconds after the previous job
+    remove-reserve-upload-mills: 60000 # runs 60 seconds after the previous job
+    remove-cart-reserve-upload-mills: 60000 # runs 60 seconds after the previous job
