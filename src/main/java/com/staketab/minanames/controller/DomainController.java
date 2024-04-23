@@ -3,9 +3,11 @@ package com.staketab.minanames.controller;
 import com.staketab.minanames.dto.ApplyReservedDomainDTO;
 import com.staketab.minanames.dto.DomainDTO;
 import com.staketab.minanames.dto.DomainReservationDTO;
+import com.staketab.minanames.dto.DomainTxSaveDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
 import com.staketab.minanames.dto.ReservedDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
+import com.staketab.minanames.dto.request.CartDomainTxSaveDTO;
 import com.staketab.minanames.dto.request.DomainCartReservationDTO;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.dto.request.sort.DomainsSortColumn;
@@ -68,6 +70,16 @@ public class DomainController {
     @PostMapping("/save")
     public ResponseEntity<DomainEntity> create(@RequestBody DomainReservationDTO domainRequest) {
         return ok(domainService.create(domainRequest));
+    }
+
+    @PostMapping("/tx/save")
+    public void saveTx(@RequestBody DomainTxSaveDTO domainRequest) {
+        domainService.saveTx(domainRequest);
+    }
+
+    @PostMapping("/cart/tx/save")
+    public void saveCartTx(@RequestBody CartDomainTxSaveDTO domainRequest) {
+        domainService.saveCartTx(domainRequest);
     }
 
     @PostMapping("/reserve")

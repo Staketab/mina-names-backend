@@ -12,9 +12,6 @@ import java.util.List;
 @Repository
 public interface PayableTransactionRepository extends JpaRepository<PayableTransactionEntity, String> {
 
-    List<PayableTransactionEntity> findAllByTxStatus(TxStatus txStatus);
-
-    @Modifying
-    void deleteAllByTxHashIn(Collection<String> txHash);
+    List<PayableTransactionEntity> findAllByTxStatusAndTxHashIsNotNull(TxStatus txStatus);
 
 }

@@ -6,11 +6,11 @@ import com.staketab.minanames.entity.TxStatus;
 import java.util.List;
 
 public interface TxService {
-    PayableTransactionEntity getOrCreate(String txHash, int countDomains, TxStatus status);
+    PayableTransactionEntity getOrCreate(int countDomains, TxStatus status);
 
     void checkTransactions();
 
     void deleteTxsWithIncorrectAmount();
 
-    void deleteTxs(List<String> txHashes);
+    void deleteTxs(List<String> ids);
 }

@@ -5,14 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class ApplyReservedDomainDTO {
-
+@AllArgsConstructor
+public class DomainTxSaveDTO {
     private String ownerAddress;
-    private List<CartReservedDomainDTO> domains;
+    private String domainName;
+    private String txHash;
 }

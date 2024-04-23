@@ -4,9 +4,11 @@ import com.staketab.minanames.dto.ApplyReservedDomainDTO;
 import com.staketab.minanames.dto.CartReservedDomainDTO;
 import com.staketab.minanames.dto.DomainDTO;
 import com.staketab.minanames.dto.DomainReservationDTO;
+import com.staketab.minanames.dto.DomainTxSaveDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
 import com.staketab.minanames.dto.ReservedDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
+import com.staketab.minanames.dto.request.CartDomainTxSaveDTO;
 import com.staketab.minanames.dto.request.DomainCartReservationDTO;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
@@ -16,6 +18,7 @@ import com.staketab.minanames.entity.LogInfoStatus;
 import com.staketab.minanames.entity.PayableTransactionEntity;
 import com.staketab.minanames.entity.TxStatus;
 import com.staketab.minanames.exception.DuplicateKeyException;
+import com.staketab.minanames.exception.IncorrectDomainsSizeException;
 import com.staketab.minanames.exception.NotFoundException;
 import com.staketab.minanames.repository.DomainRepository;
 import com.staketab.minanames.service.DomainService;
@@ -44,6 +47,8 @@ import static com.staketab.minanames.entity.LogInfoStatus.CREATE;
 import static com.staketab.minanames.entity.LogInfoStatus.DELETE_CART_RESERVE;
 import static com.staketab.minanames.entity.LogInfoStatus.REMOVE_CART_RESERVATION;
 import static com.staketab.minanames.entity.LogInfoStatus.REMOVE_RESERVATION;
+import static com.staketab.minanames.entity.LogInfoStatus.SAVE_TX_FOR_CARTS_DOMAIN;
+import static com.staketab.minanames.entity.LogInfoStatus.SAVE_TX_FOR_ONE_DOMAIN;
 import static com.staketab.minanames.utils.Constants.DEFAULT_DENOMINATION;
 import static com.staketab.minanames.utils.Constants.MINA_DENOMINATION;
 
@@ -79,6 +84,38 @@ public class DomainServiceImpl implements DomainService {
     }
 
     @Override
+    public void saveTx(DomainTxSaveDTO request) {
+        String domainName = request.getDomainName();
+        String ownerAddress = request.getOwnerAddress();
+        domainRepository.findDomainEntityByDomainNameAndOwnerAddress(domainName, ownerAddress)
+                .ifPresentOrElse(domainEntity -> {
+                    PayableTransactionEntity transaction = domainEntity.getTransaction();
+                    transaction.setTxHash(request.getTxHash());
+                    domainRepository.save(domainEntity);
+                    logInfoService.saveLogInfo(buildLogInfoEntity(domainEntity, SAVE_TX_FOR_ONE_DOMAIN));
+                }, () -> {
+                    throw new NotFoundException(String.format("Domain isn’t found by name: %s and ownerAddress: %s", domainName, ownerAddress));
+                });
+    }
+
+    @Override
+    public void saveCartTx(CartDomainTxSaveDTO cartDomainTxSaveDTO) {
+        List<String> domains = cartDomainTxSaveDTO.getDomains();
+        List<DomainEntity> allByDomainNameIn = domainRepository.findAllByDomainNameInAndDomainStatus(domains, PENDING.name());
+        if (allByDomainNameIn.size() != domains.size()) {
+            throw new IncorrectDomainsSizeException(String.format("Invalid number of domain names, received %s but expected %s", domains.size(), allByDomainNameIn.size()));
+        }
+        List<LogInfoEntity> logInfoEntities = allByDomainNameIn.stream()
+                .map(value -> {
+                    PayableTransactionEntity transaction = value.getTransaction();
+                    transaction.setTxHash(cartDomainTxSaveDTO.getTxHash());
+                    return domainRepository.save(value);
+                }).map(domainEntity -> buildLogInfoEntity(domainEntity, SAVE_TX_FOR_CARTS_DOMAIN))
+                .toList();
+        logInfoService.saveAllLogInfos(logInfoEntities);
+    }
+
+    @Override
     public DomainEntity reserve(DomainCartReservationDTO request) {
         String domainName = request.getDomainName();
         domainRepository.findDomainEntityByDomainName(domainName)
@@ -91,16 +128,15 @@ public class DomainServiceImpl implements DomainService {
     }
 
     @Override
-    @Transactional
     public void applyReservedDomain(ApplyReservedDomainDTO domainRequest) {
         Map<String, CartReservedDomainDTO> cartDomainMap = domainRequest.getDomains()
                 .stream()
                 .collect(Collectors.toMap(CartReservedDomainDTO::getDomainName, Function.identity()));
-        PayableTransactionEntity payableTransaction = txService.getOrCreate(domainRequest.getTxHash(), domainRequest.getDomains().size(), TxStatus.PENDING);
+        PayableTransactionEntity payableTransaction = txService.getOrCreate(domainRequest.getDomains().size(), TxStatus.PENDING);
         List<DomainEntity> domains = domainRepository.findAllByOwnerAddressAndDomainNameIn(domainRequest.getOwnerAddress(), cartDomainMap.keySet());
         List<String> txHashes = domains.stream()
                 .map(DomainEntity::getTransaction)
-                .map(PayableTransactionEntity::getTxHash)
+                .map(PayableTransactionEntity::getId)
                 .toList();
         saveUpdatedDomains(domains, cartDomainMap, payableTransaction);
         txService.deleteTxs(txHashes);
@@ -193,7 +229,7 @@ public class DomainServiceImpl implements DomainService {
     }
 
     private DomainEntity buildDomainEntity(DomainReservationDTO request) {
-        PayableTransactionEntity tx = txService.getOrCreate(request.getTxHash(), 1, TxStatus.PENDING);
+        PayableTransactionEntity tx = txService.getOrCreate(1, TxStatus.PENDING);
         return DomainEntity.builder()
                 .ownerAddress(request.getOwnerAddress())
                 .transaction(tx)
@@ -208,7 +244,7 @@ public class DomainServiceImpl implements DomainService {
     }
 
     private DomainEntity buildDomainEntityReserve(DomainCartReservationDTO request) {
-        PayableTransactionEntity tx = txService.getOrCreate(String.format("%s_%s", request.getDomainName(), RESERVED.name()), 1, TxStatus.RESERVED);
+        PayableTransactionEntity tx = txService.getOrCreate(1, TxStatus.RESERVED);
         return DomainEntity.builder()
                 .ownerAddress(request.getOwnerAddress())
                 .domainName(request.getDomainName())
