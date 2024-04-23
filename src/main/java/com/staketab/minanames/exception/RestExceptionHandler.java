@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -23,5 +24,11 @@ public class RestExceptionHandler {
     @ExceptionHandler(DuplicateKeyException.class)
     public ResponseEntity<ApiError> handleDuplicateKeyException(Exception e) {
         return ResponseEntity.status(CONFLICT).body(new ApiError(CONFLICT, e.getMessage()));
+    }
+
+    @ResponseStatus(BAD_REQUEST)
+    @ExceptionHandler(IncorrectDomainsSizeException.class)
+    public ResponseEntity<ApiError> handleIncorrectDomainsSizeException(Exception e) {
+        return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, e.getMessage()));
     }
 }

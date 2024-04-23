@@ -1,4 +1,4 @@
-package com.staketab.minanames.dto;
+package com.staketab.minanames.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +9,10 @@ import java.util.List;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class ApplyReservedDomainDTO {
-
+@AllArgsConstructor
+public class CartDomainTxSaveDTO {
     private String ownerAddress;
-    private List<CartReservedDomainDTO> domains;
+    private String txHash;
+    private List<String> domains;
 }

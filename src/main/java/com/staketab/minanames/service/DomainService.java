@@ -3,9 +3,11 @@ package com.staketab.minanames.service;
 import com.staketab.minanames.dto.ApplyReservedDomainDTO;
 import com.staketab.minanames.dto.DomainDTO;
 import com.staketab.minanames.dto.DomainReservationDTO;
+import com.staketab.minanames.dto.DomainTxSaveDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
 import com.staketab.minanames.dto.ReservedDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
+import com.staketab.minanames.dto.request.CartDomainTxSaveDTO;
 import com.staketab.minanames.dto.request.DomainCartReservationDTO;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
@@ -17,6 +19,10 @@ public interface DomainService {
     Page<DomainEntity> findAllByAccountPageable(BaseRequest request, String accountAddress, SearchParams searchParams);
 
     DomainEntity create(DomainReservationDTO domainRequest);
+
+    void saveTx(DomainTxSaveDTO domainTxSaveDTO);
+
+    void saveCartTx(CartDomainTxSaveDTO cartDomainTxSaveDTO);
 
     DomainEntity reserve(DomainCartReservationDTO domainRequest);
 
