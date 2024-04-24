@@ -46,9 +46,11 @@ public class DomainEntity {
     @Column(name = "reservation_timestamp")
     private Long reservationTimestamp;
     @Column(name = "expiration_time_years")
-    private Integer expirationTime;  // expirationTime  TODO: (need to think about expirationTimestamp)
+    private Integer expirationTime;
     @Column(name = "start_timestamp")
     private Long startTimestamp;  // time when tx become applied
+    @Column(name = "end_timestamp")
+    private Long endTimestamp;
 
     @Column(name = "status")
     private String domainStatus;

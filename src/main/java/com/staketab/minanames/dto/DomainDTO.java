@@ -19,6 +19,7 @@ public class DomainDTO {
     private Long reservationTimestamp;
     private Integer expirationTime;
     private Long startTimestamp;
+    private Long endTimestamp;
     private DomainStatus domainStatus;
     private Boolean isSendToCloudWorker;
     private Boolean isDefault;
