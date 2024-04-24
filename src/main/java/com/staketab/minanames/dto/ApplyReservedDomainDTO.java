@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 public class ApplyReservedDomainDTO {
 
+    private String txHash;
     private String ownerAddress;
     private List<CartReservedDomainDTO> domains;
 }

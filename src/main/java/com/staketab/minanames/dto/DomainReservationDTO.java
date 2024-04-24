@@ -14,4 +14,5 @@ public class DomainReservationDTO {
     private String domainName;
     private Integer expirationTime;
     private Double amount;
+    private String txHash;
 }

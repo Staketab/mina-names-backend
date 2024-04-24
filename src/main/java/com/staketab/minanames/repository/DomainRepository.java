@@ -55,17 +55,6 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
 
     Optional<DomainEntity> findDomainEntityByDomainName(String domainName);
 
-    Optional<DomainEntity> findDomainEntityByDomainNameAndOwnerAddress(String domainName, String ownerAddress);
-
-    @Query(nativeQuery = true,
-    value = """
-            select *
-            from domains
-            where transaction = (select transaction from domains where name in (:domainName) limit 1)
-            and status = :domainStatus
-            """)
-    List<DomainEntity> findAllByDomainNameInAndDomainStatus(Collection<String> domainName, String domainStatus);
-
     @Modifying
     @Transactional
     void deleteAllByTransactionIn(Collection<PayableTransactionEntity> transaction);
