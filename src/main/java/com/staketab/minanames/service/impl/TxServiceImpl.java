@@ -37,14 +37,14 @@ public class TxServiceImpl implements TxService {
     private final DomainRepository domainRepository;
 
     @Override
-    public PayableTransactionEntity getOrCreate(int countDomains, TxStatus status) {
-        return createTx(countDomains, status);
+    public PayableTransactionEntity getOrCreate(String txHash, int countDomains, TxStatus status) {
+        return payableTransactionRepository.findById(txHash).orElseGet(() -> createTx(txHash, countDomains, status));
     }
 
     @Override
     @Transactional
     public void checkTransactions() {
-        List<PayableTransactionEntity> pendingTxs = payableTransactionRepository.findAllByTxStatusAndTxHashIsNotNull(TxStatus.PENDING);
+        List<PayableTransactionEntity> pendingTxs = payableTransactionRepository.findAllByTxStatus(TxStatus.PENDING);
         Map<TxStatus, List<PayableTransactionEntity>> txStatusListMap = generateMapOfFailedAndAppliedTxs(pendingTxs);
         List<PayableTransactionEntity> appliedTxs = txStatusListMap.get(TxStatus.APPLIED);
         List<PayableTransactionEntity> failedTxs = txStatusListMap.get(TxStatus.FAILED);
@@ -58,7 +58,7 @@ public class TxServiceImpl implements TxService {
     @Override
     @Transactional
     public void deleteTxsWithIncorrectAmount() {
-        List<PayableTransactionEntity> pendingTxs = payableTransactionRepository.findAllByTxStatusAndTxHashIsNotNull(TxStatus.PENDING);
+        List<PayableTransactionEntity> pendingTxs = payableTransactionRepository.findAllByTxStatus(TxStatus.PENDING);
         List<PayableTransactionEntity> correctAppliedTxs = txsWithIncorrectAmount(pendingTxs);
         pendingTxs.retainAll(correctAppliedTxs);
         saveLogInfo(pendingTxs, INCORRECT_AMOUNT);
@@ -66,8 +66,8 @@ public class TxServiceImpl implements TxService {
     }
 
     @Override
-    public void deleteTxs(List<String> ids) {
-        payableTransactionRepository.deleteAllById(ids);
+    public void deleteTxs(List<String> txHashes) {
+        payableTransactionRepository.deleteAllByTxHashIn(txHashes);
     }
 
     private void sendTxsToZkCloudWorker(List<PayableTransactionEntity> appliedTxs) {
@@ -178,8 +178,9 @@ public class TxServiceImpl implements TxService {
         return Map.of(TxStatus.APPLIED, applied, TxStatus.FAILED, failed);
     }
 
-    private PayableTransactionEntity createTx(Integer countDomains, TxStatus status) {
+    private PayableTransactionEntity createTx(String txHash, Integer countDomains, TxStatus status) {
         return payableTransactionRepository.save(PayableTransactionEntity.builder()
+                .txHash(txHash)
                 .txStatus(status)
                 .countDomains(countDomains)
                 .build());

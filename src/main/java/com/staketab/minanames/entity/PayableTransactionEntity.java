@@ -14,7 +14,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.util.Set;
 
@@ -27,9 +26,6 @@ import java.util.Set;
 public class PayableTransactionEntity {
 
     @Id
-    @UuidGenerator
-    private String id;
-
     @Column(name = "hash", columnDefinition = "TEXT")
     private String txHash;
 

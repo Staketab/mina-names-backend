@@ -32,7 +32,7 @@ public class DomainEntity {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "transaction")
-    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "txHash")
     @JsonIdentityReference(alwaysAsId = true)
     private PayableTransactionEntity transaction;
 
