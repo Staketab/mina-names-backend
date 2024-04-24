@@ -8,6 +8,11 @@ server:
   ssl:
     enabled: false
 
+zk-cloud-worker:
+  url: ${ZK_CLOUD_WORKER_URL}
+  auth: ${ZK_CLOUD_WORKER_AUTH}
+  jwt-token: ${ZK_CLOUD_WORKER_JWT_TOKEN}
+
 spring:
   task:
     scheduling:
