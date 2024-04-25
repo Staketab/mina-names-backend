@@ -19,6 +19,9 @@ public class ZkCloudWorkerClient {
     @Value("${zk-cloud-worker.jwt-token}")
     private String jwtToken;
 
+    @Value("${zk-cloud-worker.chain}")
+    private String chain;
+
     private static final String PATH_TO_ZK_CLOUD_WORKER = "/zkcloudworker";
 
     public ResponseEntity<String> sendToZkCloudWorker(ZkCloudWorkerRequestDTO requestDTO) {
@@ -29,5 +32,6 @@ public class ZkCloudWorkerClient {
     private void setDefaultValues(ZkCloudWorkerRequestDTO requestDTO) {
         requestDTO.setAuth(auth);
         requestDTO.setJwtToken(jwtToken);
+        requestDTO.setChain(chain);
     }
 }

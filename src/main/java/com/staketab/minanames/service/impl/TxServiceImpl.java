@@ -1,7 +1,6 @@
 package com.staketab.minanames.service.impl;
 
 import com.staketab.minanames.entity.DomainEntity;
-import com.staketab.minanames.entity.LogInfoEntity;
 import com.staketab.minanames.entity.LogInfoStatus;
 import com.staketab.minanames.entity.PayableTransactionEntity;
 import com.staketab.minanames.entity.TxStatus;
@@ -11,6 +10,7 @@ import com.staketab.minanames.repository.DomainRepository;
 import com.staketab.minanames.repository.PayableTransactionRepository;
 import com.staketab.minanames.service.LogInfoService;
 import com.staketab.minanames.service.TxService;
+import com.staketab.minanames.service.ZkCloudWorkerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,9 +32,10 @@ import static com.staketab.minanames.entity.LogInfoStatus.INCORRECT_AMOUNT;
 public class TxServiceImpl implements TxService {
 
     private final LogInfoService logInfoService;
-    private final PayableTransactionRepository payableTransactionRepository;
-    private final TransactionRepository transactionRepository;
     private final DomainRepository domainRepository;
+    private final ZkCloudWorkerService zkCloudWorkerService;
+    private final TransactionRepository transactionRepository;
+    private final PayableTransactionRepository payableTransactionRepository;
 
     @Override
     public PayableTransactionEntity getOrCreate(String txHash, int countDomains, TxStatus status) {
@@ -51,8 +52,8 @@ public class TxServiceImpl implements TxService {
         List<PayableTransactionEntity> correctAppliedTxs = txsWithoutIncorrectAmount(appliedTxs);
 
         removeFailedTxs(failedTxs);
-        sendTxsToZkCloudWorker(correctAppliedTxs);
         applyReservedTxs(correctAppliedTxs);
+        zkCloudWorkerService.sendTxs(correctAppliedTxs);
     }
 
     @Override
@@ -68,10 +69,6 @@ public class TxServiceImpl implements TxService {
     @Override
     public void deleteTxs(List<String> txHashes) {
         payableTransactionRepository.deleteAllByTxHashIn(txHashes);
-    }
-
-    private void sendTxsToZkCloudWorker(List<PayableTransactionEntity> appliedTxs) {
-        //todo add client to zkCloudWorker
     }
 
     private void applyReservedTxs(List<PayableTransactionEntity> pendingTxs) {
@@ -148,11 +145,8 @@ public class TxServiceImpl implements TxService {
     }
 
     private void saveLogInfo(List<PayableTransactionEntity> txs, LogInfoStatus status) {
-        List<LogInfoEntity> logInfoEntities = domainRepository.findAllByTransactionIn(txs)
-                .stream()
-                .map(domainEntity -> buildLogInfoEntity(domainEntity, status))
-                .toList();
-        logInfoService.saveAllLogInfos(logInfoEntities);
+        List<DomainEntity> domainEntities = domainRepository.findAllByTransactionIn(txs);
+        logInfoService.saveAllLogInfos(domainEntities, status);
     }
 
     private Map<TxStatus, List<PayableTransactionEntity>> generateMapOfFailedAndAppliedTxs(List<PayableTransactionEntity> payableTransactions) {
@@ -184,15 +178,5 @@ public class TxServiceImpl implements TxService {
                 .txStatus(status)
                 .countDomains(countDomains)
                 .build());
-    }
-
-    private LogInfoEntity buildLogInfoEntity(DomainEntity domainEntity, LogInfoStatus status) {
-        return LogInfoEntity.builder()
-                .logInfoStatus(status.name())
-                .txHash(domainEntity.getTransaction().getTxHash())
-                .domainName(domainEntity.getDomainName())
-                .amount(domainEntity.getAmount())
-                .ownerAddress(domainEntity.getOwnerAddress())
-                .build();
     }
 }
