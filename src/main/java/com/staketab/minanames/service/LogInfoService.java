@@ -1,12 +1,13 @@
 package com.staketab.minanames.service;
 
-import com.staketab.minanames.entity.LogInfoEntity;
+import com.staketab.minanames.entity.DomainEntity;
+import com.staketab.minanames.entity.LogInfoStatus;
 
 import java.util.List;
 
 public interface LogInfoService {
 
-    void saveLogInfo(LogInfoEntity logInfoEntity);
+    void saveLogInfo(DomainEntity domainEntity, LogInfoStatus status);
 
-    void saveAllLogInfos(List<LogInfoEntity> logInfoEntities);
+    void saveAllLogInfos(List<DomainEntity> domainEntities, LogInfoStatus status);
 }
