@@ -16,7 +16,7 @@ public class ZkCloudWorkerScheduler {
     private final ZkCloudWorkerService zkCloudWorkerService;
 
     @Scheduled(cron = "${scheduled.zk-cloud-worker.send-task-cron}")
-    public void removeReservedDomains() {
+    public void sendCreateTask() {
         log.info("Call create task");
         zkCloudWorkerService.sendCreateTask();
     }
