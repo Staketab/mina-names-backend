@@ -127,7 +127,7 @@ public class TxServiceImpl implements TxService {
         domainRepository.findAllByTransactionIn(appliedTxs).forEach(domain -> {
             String txHash = domain.getTransaction().getTxHash();
             PayableTransactionEntity tx = appliedTxsMap.get(txHash);
-            if (tx != null && tx.getTxAmount() >= domain.getAmount()) {
+            if (tx != null && tx.getTxAmount() != null && tx.getTxAmount() >= domain.getAmount()) {
                 appliedTxsMap.remove(txHash);
             }
         });
