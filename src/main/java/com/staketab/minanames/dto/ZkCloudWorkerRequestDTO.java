@@ -8,8 +8,7 @@ import lombok.Data;
 public class ZkCloudWorkerRequestDTO {
     private String auth;
     private String jwtToken;
-    @Builder.Default
-    private String command = "execute";
+    private String command;
     private ZkCloudWorkerDataDTO data;
     private String chain;
 }
