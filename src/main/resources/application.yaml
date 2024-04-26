@@ -78,3 +78,6 @@ scheduled:
     enabled: true
     remove-reserve-upload-mills: 60000 # runs 60 seconds after the previous job
     remove-cart-reserve-upload-mills: 60000 # runs 60 seconds after the previous job
+  zk-cloud-worker:
+    enable: true
+    send-task-cron: 0 0 */2 * * *

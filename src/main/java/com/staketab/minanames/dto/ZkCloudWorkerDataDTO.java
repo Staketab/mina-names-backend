@@ -1,5 +1,6 @@
 package com.staketab.minanames.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,12 +10,13 @@ import java.util.List;
 @Data
 @Builder
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ZkCloudWorkerDataDTO {
     private String task;
-    private List<ZkCloudWorkerTransaction> transactions;
+    private List<String> transactions;
     private String metadata;
     @Builder.Default
-    private String args = "{\"contractAddress\":\"B62qrR3kE3S9xsQy2Jq8tp3TceWDeAmiXhU4KCXh19HzAVPj7BiNAME\"}";
+    private String args = "{\"contractAddress\":\"B62qrjWrAaXV65CZgpfhLdFynbFdyj851cWZPCPvF92mF3ohGDbNAME\"}";
     @Builder.Default
     private String repo = "nameservice";
     @Builder.Default

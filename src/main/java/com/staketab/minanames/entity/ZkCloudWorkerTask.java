@@ -4,14 +4,17 @@ import lombok.Getter;
 
 @Getter
 public enum ZkCloudWorkerTask {
-    SEND_TRANSACTION("createTxTask", "backend txs"),
-    GET_BLOCK_INFO("getBlocksInfo", "commands info");
+    CREATE_TASK("createTxTask", "backend txTask", "execute"),
+    SEND_TRANSACTIONS(null, "backend txs", "sendTransactions"),
+    GET_BLOCK_INFO("getBlocksInfo", "commands info", "execute");
 
     private final String name;
     private final String metadata;
+    private final String command;
 
-    ZkCloudWorkerTask(String name, String metadata) {
+    ZkCloudWorkerTask(String name, String metadata, String command) {
         this.name = name;
         this.metadata = metadata;
+        this.command = command;
     }
 }
