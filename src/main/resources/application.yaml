@@ -13,6 +13,8 @@ zk-cloud-worker:
   url: ${ZK_CLOUD_WORKER_URL}
   auth: ${ZK_CLOUD_WORKER_AUTH}
   jwt-token: ${ZK_CLOUD_WORKER_JWT_TOKEN}
+  ipfs-url: ${ZK_CLOUD_WORKER_IPFS_URL}
+  ipfs-token: ${ZK_CLOUD_WORKER_IPFS_TOKEN}
 
 spring:
   task:
@@ -79,5 +81,6 @@ scheduled:
     remove-reserve-upload-mills: 60000 # runs 60 seconds after the previous job
     remove-cart-reserve-upload-mills: 60000 # runs 60 seconds after the previous job
   zk-cloud-worker:
-    enable: true
+    enabled: true
     send-task-cron: 0 */2 * * * *
+    check-zk-blocks: 120000
