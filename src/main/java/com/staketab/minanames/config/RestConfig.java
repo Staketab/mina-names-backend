@@ -12,9 +12,18 @@ public class RestConfig {
     @Value("${zk-cloud-worker.url}")
     private String zkCloudWorkerUrl;
 
+    @Value("${zk-cloud-worker.ipfs-url}")
+    private String ipfsZkCloudWorkerUrl;
+
     @Bean
     public RestTemplate zkCloudWorkerRestTemplate(final RestTemplateBuilder restTemplateBuilder) {
         return restTemplateBuilder.rootUri(zkCloudWorkerUrl)
+                .build();
+    }
+
+    @Bean
+    public RestTemplate ipfsZkCloudWorkerRestTemplate(final RestTemplateBuilder restTemplateBuilder) {
+        return restTemplateBuilder.rootUri(ipfsZkCloudWorkerUrl)
                 .build();
     }
 }
