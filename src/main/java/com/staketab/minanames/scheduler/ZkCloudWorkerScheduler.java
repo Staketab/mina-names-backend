@@ -21,4 +21,9 @@ public class ZkCloudWorkerScheduler {
         zkCloudWorkerService.sendCreateTask();
     }
 
+//    @Scheduled(fixedDelayString = "${scheduled.zk-cloud-worker.check-zk-blocks}")
+//    public void checkBlocksFromZkCloudWorker() {
+//        zkCloudWorkerService.checkBlocksFromZkCloudWorker();
+//    }
+
 }
