@@ -82,5 +82,5 @@ scheduled:
     remove-cart-reserve-upload-mills: 60000 # runs 60 seconds after the previous job
   zk-cloud-worker:
     enabled: true
-    send-task-cron: 0 0 */2 * * * *
+    send-task-cron: 0 0 */2 * * *
     check-zk-blocks: 120000
