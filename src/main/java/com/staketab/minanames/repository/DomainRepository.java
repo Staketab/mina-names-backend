@@ -41,6 +41,15 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
                                             """)
     List<DomainEntity> findAllByReservationTimestampLessThan(Long reservationTimestamp, String status);
 
+    @Query(nativeQuery = true,
+            value = """
+                    SELECT *
+                    FROM domains
+                    where owner_address = (select owner_address from domains where id = :id)
+                    and status = 'RESERVED'
+                                            """)
+    List<DomainEntity> findAllCartsReservedDomains(String id);
+
     @Modifying
     @Query(nativeQuery = true,
             value = """
@@ -62,4 +71,6 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
     List<DomainEntity> findAllByTransactionIn(Collection<PayableTransactionEntity> transaction);
 
     List<DomainEntity> findAllByOwnerAddressAndDomainNameIn(String ownerAddress, Collection<String> domainName);
+
+    List<DomainEntity> findAllByIsSendToCloudWorkerTrueAndDomainStatus(String domainStatus);
 }

@@ -1,6 +1,5 @@
 package com.staketab.minanames.dto;
 
-import com.staketab.minanames.entity.DomainStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,8 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ReservedDomainDTO {
+public class DomainCartReserveUpdateDTO {
 
     private String id;
-    private DomainStatus status;
+    private Integer expirationTime;
+    private Double amount;
 }

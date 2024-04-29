@@ -1,12 +1,13 @@
 package com.staketab.minanames.service;
 
 import com.staketab.minanames.dto.ApplyReservedDomainDTO;
+import com.staketab.minanames.dto.DomainCartReservationDTO;
+import com.staketab.minanames.dto.DomainCartReserveUpdateDTO;
 import com.staketab.minanames.dto.DomainDTO;
 import com.staketab.minanames.dto.DomainReservationDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
 import com.staketab.minanames.dto.ReservedDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
-import com.staketab.minanames.dto.request.DomainCartReservationDTO;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,8 @@ public interface DomainService {
     DomainEntity create(DomainReservationDTO domainRequest);
 
     DomainEntity reserve(DomainCartReservationDTO domainRequest);
+
+    void updateReserve(DomainCartReserveUpdateDTO domainRequest);
 
     void applyReservedDomain(ApplyReservedDomainDTO domainRequest);
 

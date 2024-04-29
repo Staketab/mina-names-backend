@@ -1,4 +1,4 @@
-package com.staketab.minanames.dto.request;
+package com.staketab.minanames.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
