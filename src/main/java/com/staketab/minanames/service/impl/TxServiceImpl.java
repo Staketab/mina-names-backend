@@ -118,7 +118,7 @@ public class TxServiceImpl implements TxService {
         Map<String, Long> txHashAndAmountMap = calculateTotalAmountByTransaction(domainRepository.findAllByTransactionIn(multipleTxs));
         appliedTxs.removeIf(tx -> {
             Long amount = txHashAndAmountMap.get(tx.getTxHash());
-            return amount != null && tx.getTxAmount() >= amount;
+            return amount != null && tx.getTxAmount() != null && tx.getTxAmount() >= amount;
         });
 
         Map<String, PayableTransactionEntity> appliedTxsMap = appliedTxs.stream()

@@ -2,12 +2,13 @@ package com.staketab.minanames.service.impl;
 
 import com.staketab.minanames.dto.ApplyReservedDomainDTO;
 import com.staketab.minanames.dto.CartReservedDomainDTO;
+import com.staketab.minanames.dto.DomainCartReservationDTO;
+import com.staketab.minanames.dto.DomainCartReserveUpdateDTO;
 import com.staketab.minanames.dto.DomainDTO;
 import com.staketab.minanames.dto.DomainReservationDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
 import com.staketab.minanames.dto.ReservedDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
-import com.staketab.minanames.dto.request.DomainCartReservationDTO;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
 import com.staketab.minanames.entity.DomainStatus;
@@ -77,6 +78,7 @@ public class DomainServiceImpl implements DomainService {
     }
 
     @Override
+    @Transactional
     public DomainEntity reserve(DomainCartReservationDTO request) {
         String domainName = request.getDomainName();
         domainRepository.findDomainEntityByDomainName(domainName)
@@ -85,7 +87,27 @@ public class DomainServiceImpl implements DomainService {
                 });
         DomainEntity domain = buildDomainEntityReserve(request);
         logInfoService.saveLogInfo(domain, CART_RESERVE);
-        return domainRepository.save(domain);
+        DomainEntity saved = domainRepository.save(domain);
+        List<DomainEntity> domainEntities = domainRepository.findAllCartsReservedDomains(saved.getId())
+                .stream()
+                .peek(domainEntity -> domainEntity.setReservationTimestamp(saved.getReservationTimestamp())).toList();
+        domainRepository.saveAll(domainEntities);
+        return saved;
+    }
+
+    @Override
+    @Transactional
+    public void updateReserve(DomainCartReserveUpdateDTO domainRequest) {
+        long currentTimeMillis = System.currentTimeMillis();
+        List<DomainEntity> reservedDomains = domainRepository.findAllCartsReservedDomains(domainRequest.getId());
+        for (DomainEntity reservedDomain : reservedDomains) {
+            if (reservedDomain.getId().equals(domainRequest.getId())) {
+                reservedDomain.setExpirationTime(domainRequest.getExpirationTime());
+                reservedDomain.setAmount(Math.round(domainRequest.getAmount() * MINA_DENOMINATION));
+            }
+            reservedDomain.setReservationTimestamp(currentTimeMillis);
+        }
+        domainRepository.saveAll(reservedDomains);
     }
 
     @Override
@@ -161,13 +183,16 @@ public class DomainServiceImpl implements DomainService {
     }
 
     private void saveUpdatedDomains(List<DomainEntity> domains, Map<String, CartReservedDomainDTO> cartDomainMap, PayableTransactionEntity payableTransaction) {
+        LocalDateTime now = LocalDateTime.now();
         List<DomainEntity> domainEntities = domains
                 .stream()
                 .peek(domainEntity -> {
                     CartReservedDomainDTO cartReservedDomainDTO = cartDomainMap.get(domainEntity.getDomainName());
+                    long endTimestamp = Timestamp.valueOf(now.plusYears(domainEntity.getExpirationTime())).getTime();
                     domainEntity.setAmount(Math.round(cartReservedDomainDTO.getAmount() * MINA_DENOMINATION));
                     domainEntity.setTransaction(payableTransaction);
                     domainEntity.setDomainStatus(PENDING.name());
+                    domainEntity.setEndTimestamp(endTimestamp);
                 }).toList();
         logInfoService.saveAllLogInfos(domainEntities, APPLY_CART_RESERVED_DOMAINS);
         domainRepository.saveAll(domainEntities);
@@ -176,6 +201,7 @@ public class DomainServiceImpl implements DomainService {
     private ReservedDomainDTO mapToReservedDomainDTO(DomainEntity domainEntity) {
         return ReservedDomainDTO.builder()
                 .id(domainEntity.getId())
+                .status(DomainStatus.valueOf(domainEntity.getDomainStatus()))
                 .build();
     }
 

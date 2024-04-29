@@ -17,13 +17,12 @@ public class ZkCloudWorkerScheduler {
 
     @Scheduled(cron = "${scheduled.zk-cloud-worker.send-task-cron}")
     public void sendCreateTask() {
-        log.info("Call create task");
         zkCloudWorkerService.sendCreateTask();
     }
 
-//    @Scheduled(fixedDelayString = "${scheduled.zk-cloud-worker.check-zk-blocks}")
-//    public void checkBlocksFromZkCloudWorker() {
-//        zkCloudWorkerService.checkBlocksFromZkCloudWorker();
-//    }
+    @Scheduled(fixedDelayString = "${scheduled.zk-cloud-worker.check-zk-blocks}")
+    public void checkBlocksFromZkCloudWorker() {
+        zkCloudWorkerService.checkBlocksFromZkCloudWorker();
+    }
 
 }

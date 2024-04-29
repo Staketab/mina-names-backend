@@ -29,6 +29,26 @@ public class DomainEntity {
     private String id;
     @Column(name = "owner_address", columnDefinition = "TEXT")
     private String ownerAddress;
+    @Column(name = "zk_tx_id", columnDefinition = "TEXT")
+    private String zkTxId;
+    @Column(name = "ipfs", columnDefinition = "TEXT")
+    private String ipfs;
+    @Column(name = "ipfs_img_url", columnDefinition = "TEXT")
+    private String ipfsImgUrl;
+    @Column(name = "website", columnDefinition = "TEXT")
+    private String website;
+    @Column(name = "email", columnDefinition = "TEXT")
+    private String email;
+    @Column(name = "discord", columnDefinition = "TEXT")
+    private String discord;
+    @Column(name = "github", columnDefinition = "TEXT")
+    private String github;
+    @Column(name = "x_twitter", columnDefinition = "TEXT")
+    private String xTwitter;
+    @Column(name = "telegram", columnDefinition = "TEXT")
+    private String telegram;
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "transaction")
@@ -48,7 +68,7 @@ public class DomainEntity {
     @Column(name = "expiration_time_years")
     private Integer expirationTime;
     @Column(name = "start_timestamp")
-    private Long startTimestamp;  // time when tx become applied
+    private Long startTimestamp;
     @Column(name = "end_timestamp")
     private Long endTimestamp;
 
