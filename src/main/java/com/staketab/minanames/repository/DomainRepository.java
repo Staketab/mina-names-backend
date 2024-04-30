@@ -73,4 +73,13 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
     List<DomainEntity> findAllByOwnerAddressAndDomainNameIn(String ownerAddress, Collection<String> domainName);
 
     List<DomainEntity> findAllByIsSendToCloudWorkerTrueAndDomainStatus(String domainStatus);
+
+    @Query(nativeQuery = true,
+    value = """
+            select block_number
+            from domains
+            order by block_number desc
+            limit 1     
+            """)
+    Long findTopBlockNumber();
 }
