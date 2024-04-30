@@ -97,6 +97,7 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
 
     @Override
     public void checkBlocksFromZkCloudWorker() {
+        Long topBlockNumber = domainRepository.findTopBlockNumber();
         ZkCloudWorkerContractDataResponse blockInfo = getBlockInfo();
         List<ZkCloudWorkerBlocksResponse> finalBlocks = blockInfo.getBlocks()
                 .stream()
@@ -105,6 +106,9 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
         List<DomainEntity> domainEntities = domainRepository.findAllByIsSendToCloudWorkerTrueAndDomainStatus(PENDING.name());
         for (ZkCloudWorkerBlocksResponse finalBlock : finalBlocks) {
             if (domainEntities.isEmpty()) {
+                return;
+            }
+            if (finalBlock.getBlockNumber() <= topBlockNumber) {
                 return;
             }
             String ipfs = finalBlock.getIpfs();
@@ -116,14 +120,14 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
                     .collect(Collectors.toMap(IpfsZkCloudWorkerTransactionResponse::getTxId, Function.identity()));
 
             List<DomainEntity> activeDomains = new ArrayList<>();
-            updateDomainStatusForActiveDomains(domainEntities, cloudWorkerTransactionResponseMap, activeDomains, ipfs);
+            updateDomainStatusForActiveDomains(domainEntities, cloudWorkerTransactionResponseMap, activeDomains, ipfs, finalBlock.getBlockNumber());
         }
     }
 
     private void updateDomainStatusForActiveDomains(List<DomainEntity> domainEntities,
                                                     Map<String, IpfsZkCloudWorkerTransactionResponse> map,
                                                     List<DomainEntity> activeDomains,
-                                                    String ipfs) {
+                                                    String ipfs, Integer blockNumber) {
         for (DomainEntity domainEntity : domainEntities) {
             String zkTxId = domainEntity.getZkTxId();
             IpfsZkCloudWorkerTransactionResponse zkTransaction = map.get(zkTxId);
@@ -131,6 +135,7 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
                 domainEntity.setDomainStatus(ACTIVE.name());
                 domainEntity.setStartTimestamp(Timestamp.valueOf(LocalDateTime.now()).getTime());
                 domainEntity.setIpfs(ipfs);
+                domainEntity.setBlockNumber(blockNumber);
                 activeDomains.add(domainEntity);
             }
         }

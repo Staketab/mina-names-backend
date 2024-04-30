@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
@@ -6,7 +6,7 @@
         <file>logs/application.log</file>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>logs/application.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>logs/application.%d{yyyy-MM-dd-HH-mm}.%i.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <totalSizeCap>500MB</totalSizeCap> <!-- Maximum total size of archived log files -->
             <maxFileSize>150MB</maxFileSize> <!-- Maximum size of each log file -->

@@ -31,6 +31,8 @@ public class DomainEntity {
     private String ownerAddress;
     @Column(name = "zk_tx_id", columnDefinition = "TEXT")
     private String zkTxId;
+    @Column(name = "block_number", columnDefinition = "integer default 0")
+    private Integer blockNumber;
     @Column(name = "ipfs", columnDefinition = "TEXT")
     private String ipfs;
     @Column(name = "ipfs_img_url", columnDefinition = "TEXT")

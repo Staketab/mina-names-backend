@@ -165,6 +165,7 @@ public class DomainServiceImpl implements DomainService {
     }
 
     @Override
+    @Transactional
     public void removeReservedDomains() {
         LocalDateTime localDateTime = LocalDateTime.now().minusDays(1);
         long currentTimestamp = Timestamp.valueOf(localDateTime).getTime();
