@@ -59,7 +59,7 @@ public class TxServiceImpl implements TxService {
     @Override
     @Transactional
     public void deleteTxsWithIncorrectAmount() {
-        List<PayableTransactionEntity> pendingTxs = payableTransactionRepository.findAllByTxStatus(TxStatus.PENDING);
+        List<PayableTransactionEntity> pendingTxs = payableTransactionRepository.findAllByTxStatusAndTxAmountIsNotNull(TxStatus.PENDING);
         List<PayableTransactionEntity> correctAppliedTxs = txsWithIncorrectAmount(pendingTxs);
         pendingTxs.retainAll(correctAppliedTxs);
         saveLogInfo(pendingTxs, INCORRECT_AMOUNT);
