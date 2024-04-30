@@ -14,6 +14,8 @@ public interface PayableTransactionRepository extends JpaRepository<PayableTrans
 
     List<PayableTransactionEntity> findAllByTxStatus(TxStatus txStatus);
 
+    List<PayableTransactionEntity> findAllByTxStatusAndTxAmountIsNotNull(TxStatus txStatus);
+
     @Modifying
     void deleteAllByTxHashIn(Collection<String> txHash);
 
