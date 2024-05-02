@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import static com.staketab.minanames.entity.DomainStatus.ACTIVE;
 import static com.staketab.minanames.entity.DomainStatus.PENDING;
 import static com.staketab.minanames.entity.LogInfoStatus.SEND_DOMAIN_TO_ZK_CLOUD_WORKER;
+import static com.staketab.minanames.entity.LogInfoStatus.SET_ACTIVE_STATUS_FOR_DOMAIN;
 import static com.staketab.minanames.entity.ZkCloudWorkerDomainStatus.ACCEPTED;
 import static com.staketab.minanames.entity.ZkCloudWorkerTask.CREATE_TASK;
 import static com.staketab.minanames.entity.ZkCloudWorkerTask.GET_BLOCK_INFO;
@@ -120,14 +121,14 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
                     .collect(Collectors.toMap(IpfsZkCloudWorkerTransactionResponse::getTxId, Function.identity()));
 
             List<DomainEntity> activeDomains = new ArrayList<>();
-            updateDomainStatusForActiveDomains(domainEntities, cloudWorkerTransactionResponseMap, activeDomains, ipfs, finalBlock.getBlockNumber());
+            activateDomains(domainEntities, cloudWorkerTransactionResponseMap, activeDomains, ipfs, finalBlock.getBlockNumber());
         }
     }
 
-    private void updateDomainStatusForActiveDomains(List<DomainEntity> domainEntities,
-                                                    Map<String, IpfsZkCloudWorkerTransactionResponse> map,
-                                                    List<DomainEntity> activeDomains,
-                                                    String ipfs, Integer blockNumber) {
+    private void activateDomains(List<DomainEntity> domainEntities,
+                                 Map<String, IpfsZkCloudWorkerTransactionResponse> map,
+                                 List<DomainEntity> activeDomains,
+                                 String ipfs, Integer blockNumber) {
         for (DomainEntity domainEntity : domainEntities) {
             String zkTxId = domainEntity.getZkTxId();
             IpfsZkCloudWorkerTransactionResponse zkTransaction = map.get(zkTxId);
@@ -140,6 +141,7 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
             }
         }
         domainEntities.removeAll(activeDomains);
+        logInfoService.saveAllLogInfos(domainEntities, SET_ACTIVE_STATUS_FOR_DOMAIN);
         domainRepository.saveAll(activeDomains);
     }
 
