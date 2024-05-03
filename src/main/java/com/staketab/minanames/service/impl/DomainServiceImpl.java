@@ -7,6 +7,7 @@ import com.staketab.minanames.dto.DomainCartReserveUpdateDTO;
 import com.staketab.minanames.dto.DomainDTO;
 import com.staketab.minanames.dto.DomainReservationDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
+import com.staketab.minanames.dto.OldMetadataDTO;
 import com.staketab.minanames.dto.ReservedDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
 import com.staketab.minanames.dto.request.SearchParams;
@@ -17,8 +18,8 @@ import com.staketab.minanames.entity.TxStatus;
 import com.staketab.minanames.exception.DuplicateKeyException;
 import com.staketab.minanames.exception.NotFoundException;
 import com.staketab.minanames.repository.DomainRepository;
+import com.staketab.minanames.service.ActivityService;
 import com.staketab.minanames.service.DomainService;
-import com.staketab.minanames.service.LogInfoService;
 import com.staketab.minanames.service.TxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,14 +36,14 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.staketab.minanames.entity.ActivityStatus.APPLY_CART_RESERVED_DOMAINS;
+import static com.staketab.minanames.entity.ActivityStatus.CART_RESERVE;
+import static com.staketab.minanames.entity.ActivityStatus.CREATE;
+import static com.staketab.minanames.entity.ActivityStatus.DELETE_CART_RESERVE;
+import static com.staketab.minanames.entity.ActivityStatus.REMOVE_CART_RESERVATION;
+import static com.staketab.minanames.entity.ActivityStatus.REMOVE_RESERVATION;
 import static com.staketab.minanames.entity.DomainStatus.PENDING;
 import static com.staketab.minanames.entity.DomainStatus.RESERVED;
-import static com.staketab.minanames.entity.LogInfoStatus.APPLY_CART_RESERVED_DOMAINS;
-import static com.staketab.minanames.entity.LogInfoStatus.CART_RESERVE;
-import static com.staketab.minanames.entity.LogInfoStatus.CREATE;
-import static com.staketab.minanames.entity.LogInfoStatus.DELETE_CART_RESERVE;
-import static com.staketab.minanames.entity.LogInfoStatus.REMOVE_CART_RESERVATION;
-import static com.staketab.minanames.entity.LogInfoStatus.REMOVE_RESERVATION;
 import static com.staketab.minanames.utils.Constants.DEFAULT_DENOMINATION;
 import static com.staketab.minanames.utils.Constants.MINA_DENOMINATION;
 
@@ -51,7 +52,7 @@ import static com.staketab.minanames.utils.Constants.MINA_DENOMINATION;
 @Slf4j
 public class DomainServiceImpl implements DomainService {
 
-    private final LogInfoService logInfoService;
+    private final ActivityService activityService;
     private final DomainRepository domainRepository;
     private final TxService txService;
 
@@ -73,7 +74,7 @@ public class DomainServiceImpl implements DomainService {
                     throw new DuplicateKeyException(String.format("Domain already exist with name: %s", domainName));
                 });
         DomainEntity domain = buildDomainEntity(request);
-        logInfoService.saveLogInfo(domain, CREATE);
+        activityService.saveActivity(domain, CREATE);
         return domainRepository.save(domain);
     }
 
@@ -86,7 +87,7 @@ public class DomainServiceImpl implements DomainService {
                     throw new DuplicateKeyException(String.format("Domain already exist with name: %s", domainName));
                 });
         DomainEntity domain = buildDomainEntityReserve(request);
-        logInfoService.saveLogInfo(domain, CART_RESERVE);
+        activityService.saveActivity(domain, CART_RESERVE);
         DomainEntity saved = domainRepository.save(domain);
         List<DomainEntity> domainEntities = domainRepository.findAllCartsReservedDomains(saved.getId())
                 .stream()
@@ -129,7 +130,7 @@ public class DomainServiceImpl implements DomainService {
     @Override
     public void removeReservedDomain(String id) {
         domainRepository.findById(id).ifPresent(domainEntity -> {
-            logInfoService.saveLogInfo(domainEntity, DELETE_CART_RESERVE);
+            activityService.saveActivity(domainEntity, DELETE_CART_RESERVE);
             domainRepository.delete(domainEntity);
         });
     }
@@ -170,7 +171,7 @@ public class DomainServiceImpl implements DomainService {
         LocalDateTime localDateTime = LocalDateTime.now().minusDays(1);
         long currentTimestamp = Timestamp.valueOf(localDateTime).getTime();
         List<DomainEntity> domainEntities = domainRepository.findAllByReservationTimestampLessThan(currentTimestamp, PENDING.name());
-        logInfoService.saveAllLogInfos(domainEntities, REMOVE_RESERVATION);
+        activityService.saveAllActivities(domainEntities, REMOVE_RESERVATION);
         domainRepository.deleteAll(domainEntities);
     }
 
@@ -179,7 +180,7 @@ public class DomainServiceImpl implements DomainService {
         LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(10);
         long currentTimestamp = Timestamp.valueOf(localDateTime).getTime();
         List<DomainEntity> domainEntities = domainRepository.findAllByReservationTimestampLessThan(currentTimestamp, RESERVED.name());
-        logInfoService.saveAllLogInfos(domainEntities, REMOVE_CART_RESERVATION);
+        activityService.saveAllActivities(domainEntities, REMOVE_CART_RESERVATION);
         domainRepository.deleteAll(domainEntities);
     }
 
@@ -195,7 +196,7 @@ public class DomainServiceImpl implements DomainService {
                     domainEntity.setDomainStatus(PENDING.name());
                     domainEntity.setEndTimestamp(endTimestamp);
                 }).toList();
-        logInfoService.saveAllLogInfos(domainEntities, APPLY_CART_RESERVED_DOMAINS);
+        activityService.saveAllActivities(domainEntities, APPLY_CART_RESERVED_DOMAINS);
         domainRepository.saveAll(domainEntities);
     }
 
@@ -255,6 +256,21 @@ public class DomainServiceImpl implements DomainService {
                 .ownerAddress(domainEntity.getOwnerAddress())
                 .reservationTimestamp(domainEntity.getReservationTimestamp())
                 .transaction(domainEntity.getTransaction().getTxHash())
+                .oldMetadata(buildOldMetadataDTO(domainEntity))
+                .build();
+    }
+
+    private OldMetadataDTO buildOldMetadataDTO(DomainEntity domainEntity) {
+        return OldMetadataDTO.builder()
+                .xTwitter(domainEntity.getXTwitter())
+                .email(domainEntity.getEmail())
+                .description(domainEntity.getDescription())
+                .discord(domainEntity.getDiscord())
+                .github(domainEntity.getGithub())
+                .website(domainEntity.getWebsite())
+                .telegram(domainEntity.getTelegram())
+                .ipfsImg(domainEntity.getIpfsImg())
+                .domainMetadata(domainEntity.getDomainMetadata())
                 .build();
     }
 }

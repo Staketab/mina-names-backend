@@ -11,4 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class IpfsZkCloudWorkerTransactionFieldResponse {
     private String tx;
+    private String oldDomain;
+    private String signature;
 }

@@ -23,4 +23,5 @@ public class DomainDTO {
     private DomainStatus domainStatus;
     private Boolean isSendToCloudWorker;
     private Boolean isDefault;
+    private OldMetadataDTO oldMetadata;
 }

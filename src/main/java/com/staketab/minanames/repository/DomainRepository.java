@@ -64,6 +64,8 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
 
     Optional<DomainEntity> findDomainEntityByDomainName(String domainName);
 
+    Optional<DomainEntity> findDomainEntityByDomainNameAndOwnerAddress(String domainName, String ownerAddress);
+
     @Modifying
     @Transactional
     void deleteAllByTransactionIn(Collection<PayableTransactionEntity> transaction);

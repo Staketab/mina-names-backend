@@ -7,7 +7,9 @@ import lombok.Data;
 @Data
 @Builder
 @AllArgsConstructor
-public class ZkCloudWorkerTransactionMetadata {
+public class OldMetadataDTO {
+    private String domainMetadata;
+    private String ipfsImg;
     private String website;
     private String email;
     private String discord;

@@ -9,10 +9,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class IpfsZkCloudWorkerTransactionResponse {
-    private String txId;
-    private String transaction;
-    private long timeReceived;
-    private String status;
+public class IpfsZkCloudWorkerTransactionDataResponse {
+    private String operation;
+    private String name;
+    private String address;
+    private long expiry;
     private String newDomain;
+    private String oldDomain;
+    private String metadata;
 }
