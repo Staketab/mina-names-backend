@@ -18,15 +18,15 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "log_info")
-public class LogInfoEntity {
+@Table(name = "activity")
+public class ActivityEntity {
 
     @Id
     @UuidGenerator
     private String id;
 
     @Column(name = "status", columnDefinition = "TEXT")
-    private String logInfoStatus;
+    private String status;
 
     @Column(name = "owner_address", columnDefinition = "TEXT")
     private String ownerAddress;

@@ -1,14 +1,14 @@
 package com.staketab.minanames.service.impl;
 
 import com.staketab.minanames.entity.DomainEntity;
-import com.staketab.minanames.entity.LogInfoStatus;
+import com.staketab.minanames.entity.ActivityStatus;
 import com.staketab.minanames.entity.PayableTransactionEntity;
 import com.staketab.minanames.entity.TxStatus;
 import com.staketab.minanames.minascan.TransactionRepository;
 import com.staketab.minanames.minascan.TxProjection;
 import com.staketab.minanames.repository.DomainRepository;
 import com.staketab.minanames.repository.PayableTransactionRepository;
-import com.staketab.minanames.service.LogInfoService;
+import com.staketab.minanames.service.ActivityService;
 import com.staketab.minanames.service.TxService;
 import com.staketab.minanames.service.ZkCloudWorkerService;
 import lombok.RequiredArgsConstructor;
@@ -22,16 +22,16 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.staketab.minanames.entity.LogInfoStatus.APPLIED;
-import static com.staketab.minanames.entity.LogInfoStatus.FAILED;
-import static com.staketab.minanames.entity.LogInfoStatus.INCORRECT_AMOUNT;
+import static com.staketab.minanames.entity.ActivityStatus.APPLIED;
+import static com.staketab.minanames.entity.ActivityStatus.FAILED;
+import static com.staketab.minanames.entity.ActivityStatus.INCORRECT_AMOUNT;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TxServiceImpl implements TxService {
 
-    private final LogInfoService logInfoService;
+    private final ActivityService activityService;
     private final DomainRepository domainRepository;
     private final ZkCloudWorkerService zkCloudWorkerService;
     private final TransactionRepository transactionRepository;
@@ -62,7 +62,7 @@ public class TxServiceImpl implements TxService {
         List<PayableTransactionEntity> pendingTxs = payableTransactionRepository.findAllByTxStatusAndTxAmountIsNotNull(TxStatus.PENDING);
         List<PayableTransactionEntity> correctAppliedTxs = txsWithIncorrectAmount(pendingTxs);
         pendingTxs.retainAll(correctAppliedTxs);
-        saveLogInfo(pendingTxs, INCORRECT_AMOUNT);
+        saveActivity(pendingTxs, INCORRECT_AMOUNT);
         domainRepository.deleteAllByTransactionIn(pendingTxs);
     }
 
@@ -75,12 +75,12 @@ public class TxServiceImpl implements TxService {
         List<PayableTransactionEntity> appliedTxs = pendingTxs.stream()
                 .peek(payableTransaction -> payableTransaction.setTxStatus(TxStatus.APPLIED))
                 .toList();
-        saveLogInfo(appliedTxs, APPLIED);
+        saveActivity(appliedTxs, APPLIED);
         payableTransactionRepository.saveAll(appliedTxs);
     }
 
     private void removeFailedTxs(List<PayableTransactionEntity> failedTxs) {
-        saveLogInfo(failedTxs, FAILED);
+        saveActivity(failedTxs, FAILED);
         domainRepository.deleteAllByTransactionIn(failedTxs);
     }
 
@@ -144,9 +144,9 @@ public class TxServiceImpl implements TxService {
                 ));
     }
 
-    private void saveLogInfo(List<PayableTransactionEntity> txs, LogInfoStatus status) {
+    private void saveActivity(List<PayableTransactionEntity> txs, ActivityStatus status) {
         List<DomainEntity> domainEntities = domainRepository.findAllByTransactionIn(txs);
-        logInfoService.saveAllLogInfos(domainEntities, status);
+        activityService.saveAllActivities(domainEntities, status);
     }
 
     private Map<TxStatus, List<PayableTransactionEntity>> generateMapOfFailedAndAppliedTxs(List<PayableTransactionEntity> payableTransactions) {

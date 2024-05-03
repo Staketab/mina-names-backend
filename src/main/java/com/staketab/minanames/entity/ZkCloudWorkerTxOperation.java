@@ -2,6 +2,8 @@ package com.staketab.minanames.entity;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+
 @Getter
 public enum ZkCloudWorkerTxOperation {
     ADD("add"),
@@ -13,5 +15,12 @@ public enum ZkCloudWorkerTxOperation {
 
     ZkCloudWorkerTxOperation(String name) {
         this.name = name;
+    }
+
+    public static ZkCloudWorkerTxOperation fromString(String name){
+        return Arrays.stream(ZkCloudWorkerTxOperation.values())
+                .filter(v -> name.equals(v.getName()))
+                .findFirst()
+                .orElseThrow();
     }
 }

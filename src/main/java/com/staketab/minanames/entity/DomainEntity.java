@@ -33,10 +33,12 @@ public class DomainEntity {
     private String zkTxId;
     @Column(name = "block_number", columnDefinition = "integer default 0")
     private Integer blockNumber;
+    @Column(name = "domain_metadata", columnDefinition = "TEXT")
+    private String domainMetadata;
     @Column(name = "ipfs", columnDefinition = "TEXT")
     private String ipfs;
-    @Column(name = "ipfs_img_url", columnDefinition = "TEXT")
-    private String ipfsImgUrl;
+    @Column(name = "ipfs_img", columnDefinition = "TEXT")
+    private String ipfsImg;
     @Column(name = "website", columnDefinition = "TEXT")
     private String website;
     @Column(name = "email", columnDefinition = "TEXT")

@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class IpfsZkCloudWorkerTransactionWrapperResponse {
     private IpfsZkCloudWorkerTransactionResponse tx;
     private IpfsZkCloudWorkerTransactionFieldResponse fields;
+    private String newDomain;
 }
