@@ -210,11 +210,17 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
         if (domain.isEmpty()) {
             return;
         }
-        IpfsDomainMetadataZkDataDTO domainMetadata = getDomainMetadata(newMetadata);
-        Map<String, IpfsDomainMetadataNftMetadataZkDataDTO> properties = domainMetadata.getNft().getProperties();
         DomainEntity domainEntity = domain.get();
+        setMetadata(newMetadata, domainEntity);
         domainEntity.setDomainMetadata(newMetadata);
         domainEntity.setBlockNumber(finalBlock.getBlockNumber());
+        activityService.saveActivity(domainEntity, UPDATE_DOMAIN);
+        domainRepository.save(domainEntity);
+    }
+
+    private void setMetadata(String newMetadata, DomainEntity domainEntity) {
+        IpfsDomainMetadataZkDataDTO domainMetadata = getDomainMetadata(newMetadata);
+        Map<String, IpfsDomainMetadataNftMetadataZkDataDTO> properties = domainMetadata.getNft().getProperties();
         IpfsDomainMetadataNftMetadataZkDataDTO image = properties.get(IpfsMetadataCloudWorkerProperty.IMAGE.getName());
         if (image != null) {
             domainEntity.setIpfsImg(mapIpfsImgToString(image));
@@ -223,8 +229,6 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
         if (description != null) {
             domainEntity.setDescription(description.getLinkedObject().getText());
         }
-        activityService.saveActivity(domainEntity, UPDATE_DOMAIN);
-        domainRepository.save(domainEntity);
     }
 
     private void setTxIds(ResponseEntity<String> stringResponseEntity, List<DomainEntity> domainEntities) {

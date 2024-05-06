@@ -13,7 +13,6 @@ public class DomainDTO {
     private String id;
     private String ownerAddress;
     private String transaction;
-    private String domainImg;
     private String domainName;
     private BigDecimal amount;
     private Long reservationTimestamp;
@@ -23,5 +22,6 @@ public class DomainDTO {
     private DomainStatus domainStatus;
     private Boolean isSendToCloudWorker;
     private Boolean isDefault;
+    private String ipfs;
     private OldMetadataDTO oldMetadata;
 }
