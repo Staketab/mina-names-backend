@@ -215,8 +215,14 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
         DomainEntity domainEntity = domain.get();
         domainEntity.setDomainMetadata(newMetadata);
         domainEntity.setBlockNumber(finalBlock.getBlockNumber());
-        domainEntity.setIpfsImg(mapIpfsImgToString(properties.get(IpfsMetadataCloudWorkerProperty.IMAGE.getName())));
-        domainEntity.setDescription(properties.get(IpfsMetadataCloudWorkerProperty.DESCRIPTION.getName()).getLinkedObject().getText());
+        IpfsDomainMetadataNftMetadataZkDataDTO image = properties.get(IpfsMetadataCloudWorkerProperty.IMAGE.getName());
+        if (image != null) {
+            domainEntity.setIpfsImg(mapIpfsImgToString(image));
+        }
+        IpfsDomainMetadataNftMetadataZkDataDTO description = properties.get(IpfsMetadataCloudWorkerProperty.DESCRIPTION.getName());
+        if (description != null) {
+            domainEntity.setDescription(description.getLinkedObject().getText());
+        }
         activityService.saveActivity(domainEntity, UPDATE_DOMAIN);
         domainRepository.save(domainEntity);
     }
