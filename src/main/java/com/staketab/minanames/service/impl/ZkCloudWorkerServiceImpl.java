@@ -6,18 +6,21 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.staketab.minanames.client.IpfsZkCloudWorkerClient;
 import com.staketab.minanames.client.ZkCloudWorkerClient;
+import com.staketab.minanames.dto.IpfsDomainMetadataNftMetadataZkDataDTO;
+import com.staketab.minanames.dto.IpfsDomainMetadataZkDataDTO;
 import com.staketab.minanames.dto.IpfsZkCloudWorkerResponse;
 import com.staketab.minanames.dto.IpfsZkCloudWorkerTransactionDataResponse;
 import com.staketab.minanames.dto.IpfsZkCloudWorkerTransactionResponse;
 import com.staketab.minanames.dto.IpfsZkCloudWorkerTransactionWrapperResponse;
+import com.staketab.minanames.dto.ZkCloudWorkerArgs;
 import com.staketab.minanames.dto.ZkCloudWorkerBlocksResponse;
 import com.staketab.minanames.dto.ZkCloudWorkerContractDataResponse;
 import com.staketab.minanames.dto.ZkCloudWorkerDataDTO;
 import com.staketab.minanames.dto.ZkCloudWorkerGetBlockInfoResponse;
 import com.staketab.minanames.dto.ZkCloudWorkerRequestDTO;
 import com.staketab.minanames.dto.ZkCloudWorkerTransaction;
-import com.staketab.minanames.dto.ZkCloudWorkerTransactionMetadata;
 import com.staketab.minanames.entity.DomainEntity;
+import com.staketab.minanames.entity.IpfsMetadataCloudWorkerProperty;
 import com.staketab.minanames.entity.PayableTransactionEntity;
 import com.staketab.minanames.entity.ZkCloudWorkerTask;
 import com.staketab.minanames.entity.ZkCloudWorkerTxOperation;
@@ -26,6 +29,7 @@ import com.staketab.minanames.service.ActivityService;
 import com.staketab.minanames.service.ZkCloudWorkerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +50,7 @@ import static com.staketab.minanames.entity.DomainStatus.PENDING;
 import static com.staketab.minanames.entity.ZkCloudWorkerDomainStatus.ACCEPTED;
 import static com.staketab.minanames.entity.ZkCloudWorkerTask.CREATE_TASK;
 import static com.staketab.minanames.entity.ZkCloudWorkerTask.GET_BLOCK_INFO;
+import static com.staketab.minanames.entity.ZkCloudWorkerTask.GET_DOMAIN_METADATA;
 import static com.staketab.minanames.entity.ZkCloudWorkerTask.SEND_TRANSACTIONS;
 import static com.staketab.minanames.entity.ZkCloudWorkerTxOperation.ADD;
 import static com.staketab.minanames.entity.ZkCloudWorkerTxOperation.UPDATE;
@@ -54,6 +59,9 @@ import static com.staketab.minanames.entity.ZkCloudWorkerTxOperation.UPDATE;
 @Service
 @RequiredArgsConstructor
 public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
+
+    @Value("${zk-cloud-worker.mns-contract}")
+    private String mnsContract;
 
     private final Gson gson;
     private final ObjectMapper objectMapper;
@@ -125,6 +133,17 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
         }
     }
 
+    @Override
+    public IpfsDomainMetadataZkDataDTO getDomainMetadata(String domainMetadata) {
+        ZkCloudWorkerDataDTO zkCloudWorkerDataDTO = mapToZkCloudWorkerDataDTO(GET_DOMAIN_METADATA, domainMetadata);
+        ZkCloudWorkerRequestDTO zkCloudWorkerRequestDTO = mapToZkCloudWorkerRequestDTO(zkCloudWorkerDataDTO, GET_DOMAIN_METADATA);
+        ResponseEntity<String> stringResponseEntity = zkCloudWorkerClient.sendToZkCloudWorker(zkCloudWorkerRequestDTO);
+        String body = stringResponseEntity.getBody();
+        ZkCloudWorkerGetBlockInfoResponse zkCloudWorkerGetBlockInfoResponse = gson.fromJson(body, ZkCloudWorkerGetBlockInfoResponse.class);
+        String result = zkCloudWorkerGetBlockInfoResponse.getResult();
+        return gson.fromJson(result, IpfsDomainMetadataZkDataDTO.class);
+    }
+
     private void activateNewDomains(ZkCloudWorkerBlocksResponse finalBlock, List<IpfsZkCloudWorkerTransactionWrapperResponse> transactions, String ipfs) {
         Map<String, IpfsZkCloudWorkerTransactionResponse> cloudWorkerTransactionResponseMap = transactions
                 .stream()
@@ -186,28 +205,20 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
         domainRepository.saveAll(activeDomains);
     }
 
-    private void updateDomain(ZkCloudWorkerBlocksResponse finalBlock, String name, String address, String oldMetadata) {
+    private void updateDomain(ZkCloudWorkerBlocksResponse finalBlock, String name, String address, String newMetadata) {
         Optional<DomainEntity> domain = domainRepository.findDomainEntityByDomainNameAndOwnerAddress(name, address);
         if (domain.isEmpty()) {
-            log.warn(String.format("Domain %s isn't exist in data base", name));
             return;
         }
+        IpfsDomainMetadataZkDataDTO domainMetadata = getDomainMetadata(newMetadata);
+        Map<String, IpfsDomainMetadataNftMetadataZkDataDTO> properties = domainMetadata.getNft().getProperties();
         DomainEntity domainEntity = domain.get();
-        domainEntity.setDomainMetadata(oldMetadata);
+        domainEntity.setDomainMetadata(newMetadata);
         domainEntity.setBlockNumber(finalBlock.getBlockNumber());
+        domainEntity.setIpfsImg(mapIpfsImgToString(properties.get(IpfsMetadataCloudWorkerProperty.IMAGE.getName())));
+        domainEntity.setDescription(properties.get(IpfsMetadataCloudWorkerProperty.DESCRIPTION.getName()).getLinkedObject().getText());
         activityService.saveActivity(domainEntity, UPDATE_DOMAIN);
         domainRepository.save(domainEntity);
-    }
-
-    private void setUpdatedFields(ZkCloudWorkerTransactionMetadata zkMetadata, DomainEntity domainEntity) {
-        domainEntity.setXTwitter(zkMetadata.getXTwitter());
-        domainEntity.setEmail(zkMetadata.getEmail());
-        domainEntity.setDiscord(zkMetadata.getDiscord());
-        domainEntity.setDescription(zkMetadata.getDescription());
-        domainEntity.setGithub(zkMetadata.getGithub());
-        domainEntity.setTelegram(zkMetadata.getTelegram());
-        domainEntity.setWebsite(zkMetadata.getWebsite());
-        //   domainRepository.save(domainEntity);
     }
 
     private void setTxIds(ResponseEntity<String> stringResponseEntity, List<DomainEntity> domainEntities) {
@@ -238,6 +249,17 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
                 .build();
     }
 
+    private ZkCloudWorkerDataDTO mapToZkCloudWorkerDataDTO(ZkCloudWorkerTask zkCloudWorkerTask, String domainMetadata) {
+        return ZkCloudWorkerDataDTO.builder()
+                .task(zkCloudWorkerTask.getName())
+                .metadata(zkCloudWorkerTask.getMetadata())
+                .args(mapArgsToString(ZkCloudWorkerArgs.builder()
+                        .contractAddress(mnsContract)
+                        .domain(domainMetadata)
+                        .build()))
+                .build();
+    }
+
     private ZkCloudWorkerTransaction mapToZkCloudWorkerTransaction(DomainEntity domainEntity) {
         return ZkCloudWorkerTransaction.builder()
                 .operation(ADD.getName())
@@ -250,6 +272,22 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
     private String mapTxToString(ZkCloudWorkerTransaction zkCloudWorkerTransaction) {
         try {
             return objectMapper.writeValueAsString(zkCloudWorkerTransaction);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String mapArgsToString(ZkCloudWorkerArgs zkCloudWorkerTransaction) {
+        try {
+            return objectMapper.writeValueAsString(zkCloudWorkerTransaction);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String mapIpfsImgToString(IpfsDomainMetadataNftMetadataZkDataDTO ipfsDomainMetadataNftMetadataZkDataDTO) {
+        try {
+            return objectMapper.writeValueAsString(ipfsDomainMetadataNftMetadataZkDataDTO);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

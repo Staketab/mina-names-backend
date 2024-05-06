@@ -1,5 +1,6 @@
 package com.staketab.minanames.service;
 
+import com.staketab.minanames.dto.IpfsDomainMetadataZkDataDTO;
 import com.staketab.minanames.dto.ZkCloudWorkerContractDataResponse;
 import com.staketab.minanames.entity.PayableTransactionEntity;
 
@@ -14,4 +15,6 @@ public interface ZkCloudWorkerService {
     void sendCreateTask();
 
     void checkBlocksFromZkCloudWorker();
+
+    IpfsDomainMetadataZkDataDTO getDomainMetadata(String domainMetadata);
 }
