@@ -244,7 +244,6 @@ public class DomainServiceImpl implements DomainService {
     private DomainDTO buildDomainDTO(DomainEntity domainEntity) {
         return DomainDTO.builder()
                 .id(domainEntity.getId())
-                .domainImg(domainEntity.getDomainImg())
                 .domainName(domainEntity.getDomainName())
                 .amount(BigDecimal.valueOf(domainEntity.getAmount()).divide(DEFAULT_DENOMINATION, RoundingMode.HALF_UP))
                 .startTimestamp(domainEntity.getStartTimestamp())
@@ -252,6 +251,7 @@ public class DomainServiceImpl implements DomainService {
                 .domainStatus(DomainStatus.valueOf(domainEntity.getDomainStatus()))
                 .expirationTime(domainEntity.getExpirationTime())
                 .isDefault(domainEntity.getIsDefault())
+                .ipfs(domainEntity.getIpfs())
                 .isSendToCloudWorker(domainEntity.getIsSendToCloudWorker())
                 .ownerAddress(domainEntity.getOwnerAddress())
                 .reservationTimestamp(domainEntity.getReservationTimestamp())
