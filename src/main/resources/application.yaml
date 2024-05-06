@@ -15,6 +15,7 @@ zk-cloud-worker:
   jwt-token: ${ZK_CLOUD_WORKER_JWT_TOKEN}
   ipfs-url: ${ZK_CLOUD_WORKER_IPFS_URL}
   ipfs-token: ${ZK_CLOUD_WORKER_IPFS_TOKEN}
+  mns-contract: B62qnXXnnwnyUKbEBuQM64LEfNcBRzCkeNSCu3H4mhbe7ittQX2mDNS
 
 spring:
   task:

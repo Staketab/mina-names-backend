@@ -16,7 +16,7 @@ public class ZkCloudWorkerDataDTO {
     private List<String> transactions;
     private String metadata;
     @Builder.Default
-    private String args = "{\"contractAddress\":\"B62qrjWrAaXV65CZgpfhLdFynbFdyj851cWZPCPvF92mF3ohGDbNAME\"}";
+    private String args = "{\"contractAddress\":\"B62qnXXnnwnyUKbEBuQM64LEfNcBRzCkeNSCu3H4mhbe7ittQX2mDNS\"}";
     @Builder.Default
     private String repo = "nameservice";
     @Builder.Default
