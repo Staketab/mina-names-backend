@@ -42,6 +42,7 @@ import static com.staketab.minanames.entity.ActivityStatus.CREATE;
 import static com.staketab.minanames.entity.ActivityStatus.DELETE_CART_RESERVE;
 import static com.staketab.minanames.entity.ActivityStatus.REMOVE_CART_RESERVATION;
 import static com.staketab.minanames.entity.ActivityStatus.REMOVE_RESERVATION;
+import static com.staketab.minanames.entity.ActivityStatus.SET_DEFAULT_DOMAIN;
 import static com.staketab.minanames.entity.DomainStatus.PENDING;
 import static com.staketab.minanames.entity.DomainStatus.RESERVED;
 import static com.staketab.minanames.utils.Constants.DEFAULT_DENOMINATION;
@@ -74,7 +75,7 @@ public class DomainServiceImpl implements DomainService {
                     throw new DuplicateKeyException(String.format("Domain already exist with name: %s", domainName));
                 });
         DomainEntity domain = buildDomainEntity(request);
-        activityService.saveActivity(domain, CREATE);
+        activityService.saveActivity(domain, CREATE, null);
         return domainRepository.save(domain);
     }
 
@@ -87,7 +88,7 @@ public class DomainServiceImpl implements DomainService {
                     throw new DuplicateKeyException(String.format("Domain already exist with name: %s", domainName));
                 });
         DomainEntity domain = buildDomainEntityReserve(request);
-        activityService.saveActivity(domain, CART_RESERVE);
+        activityService.saveActivity(domain, CART_RESERVE, null);
         DomainEntity saved = domainRepository.save(domain);
         List<DomainEntity> domainEntities = domainRepository.findAllCartsReservedDomains(saved.getId())
                 .stream()
@@ -130,7 +131,7 @@ public class DomainServiceImpl implements DomainService {
     @Override
     public void removeReservedDomain(String id) {
         domainRepository.findById(id).ifPresent(domainEntity -> {
-            activityService.saveActivity(domainEntity, DELETE_CART_RESERVE);
+            activityService.saveActivity(domainEntity, DELETE_CART_RESERVE, null);
             domainRepository.delete(domainEntity);
         });
     }
@@ -162,7 +163,12 @@ public class DomainServiceImpl implements DomainService {
     @Override
     @Transactional
     public Boolean setDefaultDomain(String id) {
-        return domainRepository.setDefaultDomain(id) > 0;
+        boolean result = domainRepository.setDefaultDomain(id) > 0;
+        if (result) {
+            DomainEntity domainEntity = domainRepository.findById(id).get();
+            activityService.saveActivity(domainEntity, SET_DEFAULT_DOMAIN, null);
+        }
+        return result;
     }
 
     @Override
@@ -171,7 +177,7 @@ public class DomainServiceImpl implements DomainService {
         LocalDateTime localDateTime = LocalDateTime.now().minusDays(1);
         long currentTimestamp = Timestamp.valueOf(localDateTime).getTime();
         List<DomainEntity> domainEntities = domainRepository.findAllByReservationTimestampLessThan(currentTimestamp, PENDING.name());
-        activityService.saveAllActivities(domainEntities, REMOVE_RESERVATION);
+        activityService.saveAllActivities(domainEntities, REMOVE_RESERVATION, null);
         domainRepository.deleteAll(domainEntities);
     }
 
@@ -180,7 +186,7 @@ public class DomainServiceImpl implements DomainService {
         LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(10);
         long currentTimestamp = Timestamp.valueOf(localDateTime).getTime();
         List<DomainEntity> domainEntities = domainRepository.findAllByReservationTimestampLessThan(currentTimestamp, RESERVED.name());
-        activityService.saveAllActivities(domainEntities, REMOVE_CART_RESERVATION);
+        activityService.saveAllActivities(domainEntities, REMOVE_CART_RESERVATION, null);
         domainRepository.deleteAll(domainEntities);
     }
 
@@ -196,7 +202,7 @@ public class DomainServiceImpl implements DomainService {
                     domainEntity.setDomainStatus(PENDING.name());
                     domainEntity.setEndTimestamp(endTimestamp);
                 }).toList();
-        activityService.saveAllActivities(domainEntities, APPLY_CART_RESERVED_DOMAINS);
+        activityService.saveAllActivities(domainEntities, APPLY_CART_RESERVED_DOMAINS, null);
         domainRepository.saveAll(domainEntities);
     }
 

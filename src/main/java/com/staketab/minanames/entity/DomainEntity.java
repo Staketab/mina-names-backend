@@ -63,7 +63,7 @@ public class DomainEntity {
     @Column(name = "name", columnDefinition = "TEXT", unique = true)
     private String domainName;
     @Column(name = "img", columnDefinition = "TEXT")
-    private String domainImg;
+    private String domainImg; //remove?
 
     private Long amount;
 

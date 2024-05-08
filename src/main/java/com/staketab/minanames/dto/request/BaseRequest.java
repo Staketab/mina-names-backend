@@ -25,7 +25,6 @@ public class BaseRequest {
     @Parameter(required = true, schema = @Schema(defaultValue = "DESC", allowableValues = {"ASC", "DESC"}),
             description = "Sorting method: from the lowest element to the highest (ASC) or from the highest element to the lowest (DESC).")
     private OrderBy orderBy;
-//    private String searchStr;
 
     @Parameter(hidden = true)
     private String sortByColumn;
