@@ -146,7 +146,7 @@ public class TxServiceImpl implements TxService {
 
     private void saveActivity(List<PayableTransactionEntity> txs, ActivityStatus status) {
         List<DomainEntity> domainEntities = domainRepository.findAllByTransactionIn(txs);
-        activityService.saveAllActivities(domainEntities, status);
+        activityService.saveAllActivities(domainEntities, status, null);
     }
 
     private Map<TxStatus, List<PayableTransactionEntity>> generateMapOfFailedAndAppliedTxs(List<PayableTransactionEntity> payableTransactions) {

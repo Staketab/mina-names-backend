@@ -33,6 +33,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,7 +46,8 @@ import java.util.stream.Collectors;
 
 import static com.staketab.minanames.entity.ActivityStatus.SEND_DOMAIN_TO_ZK_CLOUD_WORKER;
 import static com.staketab.minanames.entity.ActivityStatus.SET_ACTIVE_STATUS_FOR_DOMAIN;
-import static com.staketab.minanames.entity.ActivityStatus.UPDATE_DOMAIN;
+import static com.staketab.minanames.entity.ActivityStatus.UPDATE_DOMAIN_DESCRIPTION;
+import static com.staketab.minanames.entity.ActivityStatus.UPDATE_DOMAIN_IMAGE;
 import static com.staketab.minanames.entity.DomainStatus.ACTIVE;
 import static com.staketab.minanames.entity.DomainStatus.PENDING;
 import static com.staketab.minanames.entity.ZkCloudWorkerDomainStatus.ACCEPTED;
@@ -54,6 +57,7 @@ import static com.staketab.minanames.entity.ZkCloudWorkerTask.GET_DOMAIN_METADAT
 import static com.staketab.minanames.entity.ZkCloudWorkerTask.SEND_TRANSACTIONS;
 import static com.staketab.minanames.entity.ZkCloudWorkerTxOperation.ADD;
 import static com.staketab.minanames.entity.ZkCloudWorkerTxOperation.UPDATE;
+import static com.staketab.minanames.utils.Constants.DEFAULT_DENOMINATION;
 
 @Slf4j
 @Service
@@ -88,7 +92,7 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
         ResponseEntity<String> stringResponseEntity = zkCloudWorkerClient.sendToZkCloudWorker(zkCloudWorkerRequestDTO);
         setTxIds(stringResponseEntity, domainEntities);
 
-        activityService.saveAllActivities(domainEntities, SEND_DOMAIN_TO_ZK_CLOUD_WORKER);
+        activityService.saveAllActivities(domainEntities, SEND_DOMAIN_TO_ZK_CLOUD_WORKER, null);
         domainRepository.saveAll(entities);
     }
 
@@ -201,7 +205,12 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
                 .collect(Collectors.toList());
 
         domainEntities.removeAll(activeDomains);
-        activityService.saveAllActivities(activeDomains, SET_ACTIVE_STATUS_FOR_DOMAIN);
+        for (DomainEntity activeDomain : activeDomains) {
+            BigDecimal amount = BigDecimal.valueOf(activeDomain.getAmount()).divide(DEFAULT_DENOMINATION, RoundingMode.HALF_UP);
+            activityService.saveActivity(activeDomain,
+                    SET_ACTIVE_STATUS_FOR_DOMAIN,
+                    String.format(SET_ACTIVE_STATUS_FOR_DOMAIN.getDetails(), amount));
+        }
         domainRepository.saveAll(activeDomains);
     }
 
@@ -214,7 +223,7 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
         setMetadata(newMetadata, domainEntity);
         domainEntity.setDomainMetadata(newMetadata);
         domainEntity.setBlockNumber(finalBlock.getBlockNumber());
-        activityService.saveActivity(domainEntity, UPDATE_DOMAIN);
+        domainEntity.setIpfs(finalBlock.getIpfs());
         domainRepository.save(domainEntity);
     }
 
@@ -224,10 +233,12 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
         IpfsDomainMetadataNftMetadataZkDataDTO image = properties.get(IpfsMetadataCloudWorkerProperty.IMAGE.getName());
         if (image != null) {
             domainEntity.setIpfsImg(mapIpfsImgToString(image));
+            activityService.saveActivity(domainEntity, UPDATE_DOMAIN_IMAGE, UPDATE_DOMAIN_IMAGE.getDetails());
         }
         IpfsDomainMetadataNftMetadataZkDataDTO description = properties.get(IpfsMetadataCloudWorkerProperty.DESCRIPTION.getName());
         if (description != null) {
             domainEntity.setDescription(description.getLinkedObject().getText());
+            activityService.saveActivity(domainEntity, UPDATE_DOMAIN_DESCRIPTION, UPDATE_DOMAIN_DESCRIPTION.getDetails());
         }
     }
 
