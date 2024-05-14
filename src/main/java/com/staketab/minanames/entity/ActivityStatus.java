@@ -10,13 +10,14 @@ public enum ActivityStatus {
     APPLY_CART_RESERVED_DOMAINS("Apply cart reserved domains", null, false),
     SEND_DOMAIN_TO_ZK_CLOUD_WORKER("Send domain to zk cloud worker", null, false),
     SET_ACTIVE_STATUS_FOR_DOMAIN("Buy", "Price: %s MINA", true),
-    UPDATE_DOMAIN_IMAGE("Update record", "Image updated", true),
+    UPDATE_DOMAIN_IMAGE("Update image", "IPFS: %s", true),
     UPDATE_DOMAIN_DESCRIPTION("Update record", "Description updated", true),
     FAILED("Failed tx", null, false),
     INCORRECT_AMOUNT("Incorrect amount", null, false),
     APPLIED("Applied tx", null, false),
     REMOVE_RESERVATION("Remove reservation", null, false),
     SET_DEFAULT_DOMAIN("Set as default domain", null, true),
+    REMOVE_DEFAULT_DOMAIN("Remove default domain", null, true),
     REMOVE_CART_RESERVATION("Remove cart reservation", null, false);
 
     private final String message;

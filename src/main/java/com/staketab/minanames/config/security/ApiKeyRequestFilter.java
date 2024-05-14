@@ -21,10 +21,8 @@ import static com.staketab.minanames.utils.Constants.API_KEY_HEADER;
 @Slf4j
 public class ApiKeyRequestFilter extends GenericFilterBean {
     private final ApiKeyRepository apiKeyRepository;
-    public static final String API_CREATE = "/api/domains/save";
-    public static final String API_UPDATE = "/api/domains/edit";
-    public static final String API_RESERVE = "/api/domains/reserve";
-    public static final String API_RESERVE_APPLY = "/api/domains/reserve/apply";
+    public static final String API_DOMAINS = "/api/domains";
+    public static final String API_ACTIVITIES = "/api/activities";
 
     public ApiKeyRequestFilter(ApiKeyRepository apiKeyRepository) {
         this.apiKeyRepository = apiKeyRepository;
@@ -36,8 +34,7 @@ public class ApiKeyRequestFilter extends GenericFilterBean {
         String path = req.getRequestURI();
         String key = req.getHeader(API_KEY_HEADER) == null ? "" : req.getHeader(API_KEY_HEADER);
 
-        if (!path.startsWith(API_CREATE) && !path.startsWith(API_UPDATE) &&
-            !path.startsWith(API_RESERVE) && !path.startsWith(API_RESERVE_APPLY)) {
+        if (!path.startsWith(API_DOMAINS) && !path.startsWith(API_ACTIVITIES)) {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }

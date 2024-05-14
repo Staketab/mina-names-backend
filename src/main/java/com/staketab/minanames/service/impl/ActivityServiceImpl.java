@@ -53,7 +53,7 @@ public class ActivityServiceImpl implements ActivityService {
                 .ownerAddress(domainEntity.getOwnerAddress())
                 .timestamp(System.currentTimeMillis())
                 .ipfs(domainEntity.getIpfs())
-                .amount(domainEntity.getAmount())
+                .amount(equals ? domainEntity.getAmount() : null)
                 .isShow(status.isShow())
                 .build();
     }

@@ -7,6 +7,7 @@ import com.staketab.minanames.dto.DomainDTO;
 import com.staketab.minanames.dto.DomainReservationDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
 import com.staketab.minanames.dto.ReservedDomainDTO;
+import com.staketab.minanames.dto.SimpleDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
@@ -14,6 +15,8 @@ import org.springframework.data.domain.Page;
 
 public interface DomainService {
     Page<DomainEntity> findAllByPageable(BaseRequest request, SearchParams searchParams);
+
+    Page<SimpleDomainDTO> findAllSimpleDomainsByPageable(BaseRequest request);
 
     Page<DomainEntity> findAllByAccountPageable(BaseRequest request, String accountAddress, SearchParams searchParams);
 
@@ -34,6 +37,8 @@ public interface DomainService {
     ReservedDomainDTO isNameReserved(String name);
 
     Boolean setDefaultDomain(String id);
+
+    Boolean removeDefaultDomain(String id);
 
     void removeReservedDomains();
 
