@@ -13,6 +13,6 @@ public class SimpleDomainDTO {
     private String domainName;
     private String domainImg;
     private long timestamp;
-    private boolean isDefault;
+    private Boolean isDefault;
     private String status;
 }
