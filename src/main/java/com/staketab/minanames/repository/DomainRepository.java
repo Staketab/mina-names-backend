@@ -28,6 +28,14 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
     @Query(nativeQuery = true,
             value = """
                     select *
+                      from domains
+                      where status = 'ACTIVE'
+                      """)
+    Page<DomainEntity> findAllDomains(Pageable buildPageable);
+
+    @Query(nativeQuery = true,
+            value = """
+                    select *
                         from domains
                         where owner_address = :accountAddress and (:searchStr is null or name = :searchStr)""")
     Page<DomainEntity> findAllDomainsByAccount(String searchStr, String accountAddress, Pageable buildPageable);
@@ -59,8 +67,17 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
                         ELSE false
                         END
                     WHERE owner_address = (select owner_address from domains where id = :id)
-                                            """)
+                    """)
     int setDefaultDomain(String id);
+
+    @Modifying
+    @Query(nativeQuery = true,
+            value = """
+                    UPDATE domains
+                    SET is_default = false
+                    WHERE id = :id
+                    """)
+    int removeDefaultDomain(String id);
 
     Optional<DomainEntity> findDomainEntityByDomainName(String domainName);
 

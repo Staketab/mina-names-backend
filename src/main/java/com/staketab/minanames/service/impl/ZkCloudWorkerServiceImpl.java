@@ -64,8 +64,13 @@ import static com.staketab.minanames.utils.Constants.DEFAULT_DENOMINATION;
 @RequiredArgsConstructor
 public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
 
+    private static final String PATH_TO_IPFS_ZK_CLOUD_WORKER = "/ipfs/%s";
+
     @Value("${zk-cloud-worker.mns-contract}")
     private String mnsContract;
+
+    @Value("${zk-cloud-worker.ipfs-url}")
+    private String ipfsZkCloudWorkerUrl;
 
     private final Gson gson;
     private final ObjectMapper objectMapper;
@@ -220,20 +225,23 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
             return;
         }
         DomainEntity domainEntity = domain.get();
-        setMetadata(newMetadata, domainEntity);
+        setMetadata(newMetadata, domainEntity, finalBlock.getIpfs());
         domainEntity.setDomainMetadata(newMetadata);
         domainEntity.setBlockNumber(finalBlock.getBlockNumber());
         domainEntity.setIpfs(finalBlock.getIpfs());
         domainRepository.save(domainEntity);
     }
 
-    private void setMetadata(String newMetadata, DomainEntity domainEntity) {
+    private void setMetadata(String newMetadata, DomainEntity domainEntity, String blockIpfs) {
         IpfsDomainMetadataZkDataDTO domainMetadata = getDomainMetadata(newMetadata);
         Map<String, IpfsDomainMetadataNftMetadataZkDataDTO> properties = domainMetadata.getNft().getProperties();
         IpfsDomainMetadataNftMetadataZkDataDTO image = properties.get(IpfsMetadataCloudWorkerProperty.IMAGE.getName());
         if (image != null) {
+            String storage = image.getLinkedObject().getStorage();
+            String imgIpfs = ipfsZkCloudWorkerUrl + String.format(PATH_TO_IPFS_ZK_CLOUD_WORKER, storage.substring(2));
+            domainEntity.setDomainImg(imgIpfs);
             domainEntity.setIpfsImg(mapIpfsImgToString(image));
-            activityService.saveActivity(domainEntity, UPDATE_DOMAIN_IMAGE, UPDATE_DOMAIN_IMAGE.getDetails());
+            activityService.saveActivity(domainEntity, UPDATE_DOMAIN_IMAGE, String.format(UPDATE_DOMAIN_IMAGE.getDetails(), blockIpfs));
         }
         IpfsDomainMetadataNftMetadataZkDataDTO description = properties.get(IpfsMetadataCloudWorkerProperty.DESCRIPTION.getName());
         if (description != null) {

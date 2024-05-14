@@ -9,6 +9,7 @@ public enum DomainsSortColumn implements DbColumnProvider {
     AMOUNT("amount"),
     STATUS("status"),
     RESERVATION_TIMESTAMP("reservation_timestamp"),
+    START_TIMESTAMP("start_timestamp"),
     IS_SEND_TO_CLOUD_WORKER("is_send_to_cloud_worker");
 
     private final String dbColumn;

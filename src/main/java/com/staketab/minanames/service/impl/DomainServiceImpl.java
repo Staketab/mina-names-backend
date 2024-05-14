@@ -9,6 +9,7 @@ import com.staketab.minanames.dto.DomainReservationDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
 import com.staketab.minanames.dto.OldMetadataDTO;
 import com.staketab.minanames.dto.ReservedDomainDTO;
+import com.staketab.minanames.dto.SimpleDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
@@ -23,6 +24,7 @@ import com.staketab.minanames.service.DomainService;
 import com.staketab.minanames.service.TxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +43,7 @@ import static com.staketab.minanames.entity.ActivityStatus.CART_RESERVE;
 import static com.staketab.minanames.entity.ActivityStatus.CREATE;
 import static com.staketab.minanames.entity.ActivityStatus.DELETE_CART_RESERVE;
 import static com.staketab.minanames.entity.ActivityStatus.REMOVE_CART_RESERVATION;
+import static com.staketab.minanames.entity.ActivityStatus.REMOVE_DEFAULT_DOMAIN;
 import static com.staketab.minanames.entity.ActivityStatus.REMOVE_RESERVATION;
 import static com.staketab.minanames.entity.ActivityStatus.SET_DEFAULT_DOMAIN;
 import static com.staketab.minanames.entity.DomainStatus.PENDING;
@@ -53,6 +56,11 @@ import static com.staketab.minanames.utils.Constants.MINA_DENOMINATION;
 @Slf4j
 public class DomainServiceImpl implements DomainService {
 
+    private static final String QUERY_PARAM_TO_IPFS_ZK_CLOUD_WORKER = "?pinataGatewayToken=%s";
+
+    @Value("${zk-cloud-worker.ipfs-token}")
+    private String token;
+
     private final ActivityService activityService;
     private final DomainRepository domainRepository;
     private final TxService txService;
@@ -60,6 +68,12 @@ public class DomainServiceImpl implements DomainService {
     @Override
     public Page<DomainEntity> findAllByPageable(BaseRequest request, SearchParams searchParams) {
         return domainRepository.findAllDomains(searchParams.getSearchStr(), request.buildPageable());
+    }
+
+    @Override
+    public Page<SimpleDomainDTO> findAllSimpleDomainsByPageable(BaseRequest request) {
+        return domainRepository.findAllDomains(request.buildPageable())
+                .map(this::buildSimpleDomainDTO);
     }
 
     @Override
@@ -173,6 +187,17 @@ public class DomainServiceImpl implements DomainService {
 
     @Override
     @Transactional
+    public Boolean removeDefaultDomain(String id) {
+        boolean result = domainRepository.removeDefaultDomain(id) > 0;
+        if (result) {
+            DomainEntity domainEntity = domainRepository.findById(id).get();
+            activityService.saveActivity(domainEntity, REMOVE_DEFAULT_DOMAIN, null);
+        }
+        return result;
+    }
+
+    @Override
+    @Transactional
     public void removeReservedDomains() {
         LocalDateTime localDateTime = LocalDateTime.now().minusDays(1);
         long currentTimestamp = Timestamp.valueOf(localDateTime).getTime();
@@ -263,6 +288,20 @@ public class DomainServiceImpl implements DomainService {
                 .reservationTimestamp(domainEntity.getReservationTimestamp())
                 .transaction(domainEntity.getTransaction().getTxHash())
                 .oldMetadata(buildOldMetadataDTO(domainEntity))
+                .build();
+    }
+
+    private SimpleDomainDTO buildSimpleDomainDTO(DomainEntity domainEntity) {
+        String image = domainEntity.getDomainImg() + String.format(QUERY_PARAM_TO_IPFS_ZK_CLOUD_WORKER, token);
+        return SimpleDomainDTO.builder()
+                .id(domainEntity.getId())
+                .domainName(domainEntity.getDomainName())
+                .isDefault(domainEntity.getIsDefault())
+                .ipfs(domainEntity.getIpfs())
+                .ownerAddress(domainEntity.getOwnerAddress())
+                .timestamp(domainEntity.getStartTimestamp())
+                .status(domainEntity.getDomainStatus())
+                .domainImg(domainEntity.getDomainImg() != null ? image : null)
                 .build();
     }
 

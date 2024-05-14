@@ -7,6 +7,7 @@ import com.staketab.minanames.dto.DomainDTO;
 import com.staketab.minanames.dto.DomainReservationDTO;
 import com.staketab.minanames.dto.DomainUpdateDTO;
 import com.staketab.minanames.dto.ReservedDomainDTO;
+import com.staketab.minanames.dto.SimpleDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.dto.request.sort.DomainsSortColumn;
@@ -66,6 +67,12 @@ public class DomainController {
         return domainService.findAllByAccountPageable(request.withSortColumn(sortBy), accountAddress, searchParams);
     }
 
+    @GetMapping("/simple")
+    @Operation(summary = "getDomains", description = "Get a page of all domainDTOs.")
+    public Page<SimpleDomainDTO> getDomainDTOs(@Valid @ParameterObject BaseRequest request) {
+        return domainService.findAllSimpleDomainsByPageable(request.withSortColumn(DomainsSortColumn.START_TIMESTAMP));
+    }
+
     @PostMapping("/save")
     public ResponseEntity<DomainEntity> create(@RequestBody DomainReservationDTO domainRequest) {
         return ok(domainService.create(domainRequest));
@@ -109,5 +116,10 @@ public class DomainController {
     @PutMapping("/{id}/default")
     public ResponseEntity<Boolean> setDefaultDomain(@PathVariable String id) {
         return ok(domainService.setDefaultDomain(id));
+    }
+
+    @PutMapping("/{id}/default/remove")
+    public ResponseEntity<Boolean> removeDefaultDomain(@PathVariable String id) {
+        return ok(domainService.removeDefaultDomain(id));
     }
 }
