@@ -64,7 +64,7 @@ import static com.staketab.minanames.utils.Constants.DEFAULT_DENOMINATION;
 @RequiredArgsConstructor
 public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
 
-    private static final String PATH_TO_IPFS_ZK_CLOUD_WORKER = "/ipfs/%s";
+    private static final String PATH_TO_IPFS_ZK_CLOUD_WORKER = "ipfs/%s";
 
     @Value("${zk-cloud-worker.mns-contract}")
     private String mnsContract;

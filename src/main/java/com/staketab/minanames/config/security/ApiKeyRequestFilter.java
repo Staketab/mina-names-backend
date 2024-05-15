@@ -39,7 +39,7 @@ public class ApiKeyRequestFilter extends GenericFilterBean {
             return;
         }
 
-        log.debug("Trying authorize with x-api-key: " + key);
+        log.debug("Trying authorize with x-api-key: {}", key);
         HttpServletResponse resp = (HttpServletResponse) servletResponse;
 
         Optional<ApiKeyEntity> apiKey = getApiKey(key);
