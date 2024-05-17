@@ -50,6 +50,7 @@ import static com.staketab.minanames.entity.DomainStatus.PENDING;
 import static com.staketab.minanames.entity.DomainStatus.RESERVED;
 import static com.staketab.minanames.utils.Constants.DEFAULT_DENOMINATION;
 import static com.staketab.minanames.utils.Constants.MINA_DENOMINATION;
+import static com.staketab.minanames.utils.Constants.MINA_DOMAIN;
 
 @Service
 @RequiredArgsConstructor
@@ -295,7 +296,7 @@ public class DomainServiceImpl implements DomainService {
         String image = domainEntity.getDomainImg() + String.format(QUERY_PARAM_TO_IPFS_ZK_CLOUD_WORKER, token);
         return SimpleDomainDTO.builder()
                 .id(domainEntity.getId())
-                .domainName(domainEntity.getDomainName())
+                .domainName(domainEntity.getDomainName() + MINA_DOMAIN)
                 .isDefault(domainEntity.getIsDefault())
                 .ipfs(domainEntity.getIpfs())
                 .ownerAddress(domainEntity.getOwnerAddress())
