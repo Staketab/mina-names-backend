@@ -134,6 +134,9 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
                 .filter(ZkCloudWorkerBlocksResponse::isFinal)
                 .filter(value -> value.getBlockNumber() > topBlockNumber)
                 .collect(Collectors.toList());
+        if (finalBlocks.isEmpty()) {
+            return;
+        }
         getMoreBlocksIfNeed(finalBlocks, blocks, topBlockNumber);
         List<ZkCloudWorkerBlocksResponse> cloudWorkerBlocksResponses = finalBlocks.reversed();
 
