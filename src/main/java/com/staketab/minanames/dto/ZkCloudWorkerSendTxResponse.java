@@ -5,14 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.List;
-
 @Data
 @Builder
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ZkCloudWorkerArgs {
-    private String contractAddress;
-    private String domain;
-    private String startBlock;
+public class ZkCloudWorkerSendTxResponse {
+    private String txId;
+    private String transaction;
+    private long timeReceived;
+    private String received;
 }

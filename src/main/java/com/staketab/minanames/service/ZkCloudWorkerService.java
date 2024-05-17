@@ -10,7 +10,7 @@ public interface ZkCloudWorkerService {
 
     void sendTxs(List<PayableTransactionEntity> appliedTxs);
 
-    ZkCloudWorkerContractDataResponse getBlockInfo();
+    ZkCloudWorkerContractDataResponse getBlockInfo(String startBlock);
 
     void sendCreateTask();
 
