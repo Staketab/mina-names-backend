@@ -125,6 +125,9 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
     public void checkBlocksFromZkCloudWorker() {
         long topBlockNumber = domainRepository.findTopBlockNumber() != null ? domainRepository.findTopBlockNumber() : 0L;
         ZkCloudWorkerContractDataResponse blockInfo = getBlockInfo(null);
+        if (blockInfo == null) {
+            return;
+        }
         List<ZkCloudWorkerBlocksResponse> blocks = blockInfo.getBlocks();
         List<ZkCloudWorkerBlocksResponse> finalBlocks = blocks
                 .stream()
