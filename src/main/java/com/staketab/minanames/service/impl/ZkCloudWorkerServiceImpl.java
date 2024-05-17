@@ -18,6 +18,7 @@ import com.staketab.minanames.dto.ZkCloudWorkerContractDataResponse;
 import com.staketab.minanames.dto.ZkCloudWorkerDataDTO;
 import com.staketab.minanames.dto.ZkCloudWorkerGetBlockInfoResponse;
 import com.staketab.minanames.dto.ZkCloudWorkerRequestDTO;
+import com.staketab.minanames.dto.ZkCloudWorkerSendTxResponse;
 import com.staketab.minanames.dto.ZkCloudWorkerTransaction;
 import com.staketab.minanames.entity.DomainEntity;
 import com.staketab.minanames.entity.IpfsMetadataCloudWorkerProperty;
@@ -37,6 +38,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -102,8 +104,8 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
     }
 
     @Override
-    public ZkCloudWorkerContractDataResponse getBlockInfo() {
-        ZkCloudWorkerDataDTO zkCloudWorkerDataDTO = mapToZkCloudWorkerDataDTO(List.of(), GET_BLOCK_INFO);
+    public ZkCloudWorkerContractDataResponse getBlockInfo(String startBlock) {
+        ZkCloudWorkerDataDTO zkCloudWorkerDataDTO = mapToZkCloudWorkerDataDTO(GET_BLOCK_INFO, null, startBlock);
         ZkCloudWorkerRequestDTO zkCloudWorkerRequestDTO = mapToZkCloudWorkerRequestDTO(zkCloudWorkerDataDTO, GET_BLOCK_INFO);
         ResponseEntity<String> stringResponseEntity = zkCloudWorkerClient.sendToZkCloudWorker(zkCloudWorkerRequestDTO);
         String body = stringResponseEntity.getBody();
@@ -122,14 +124,51 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
     @Override
     public void checkBlocksFromZkCloudWorker() {
         long topBlockNumber = domainRepository.findTopBlockNumber() != null ? domainRepository.findTopBlockNumber() : 0L;
-        ZkCloudWorkerContractDataResponse blockInfo = getBlockInfo();
-        List<ZkCloudWorkerBlocksResponse> finalBlocks = blockInfo.getBlocks()
+        ZkCloudWorkerContractDataResponse blockInfo = getBlockInfo(null);
+        List<ZkCloudWorkerBlocksResponse> blocks = blockInfo.getBlocks();
+        List<ZkCloudWorkerBlocksResponse> finalBlocks = blocks
                 .stream()
                 .filter(ZkCloudWorkerBlocksResponse::isFinal)
-                .toList()
-                .reversed();
+                .filter(value -> value.getBlockNumber() > topBlockNumber)
+                .collect(Collectors.toList());
+        getMoreBlocksIfNeed(finalBlocks, blocks, topBlockNumber);
+        List<ZkCloudWorkerBlocksResponse> cloudWorkerBlocksResponses = finalBlocks.reversed();
 
-        for (ZkCloudWorkerBlocksResponse finalBlock : finalBlocks) {
+        addNewDomainsOrUpdateOld(cloudWorkerBlocksResponses, topBlockNumber);
+    }
+
+    @Override
+    public IpfsDomainMetadataZkDataDTO getDomainMetadata(String domainMetadata) {
+        ZkCloudWorkerDataDTO zkCloudWorkerDataDTO = mapToZkCloudWorkerDataDTO(GET_DOMAIN_METADATA, domainMetadata, null);
+        ZkCloudWorkerRequestDTO zkCloudWorkerRequestDTO = mapToZkCloudWorkerRequestDTO(zkCloudWorkerDataDTO, GET_DOMAIN_METADATA);
+        ResponseEntity<String> stringResponseEntity = zkCloudWorkerClient.sendToZkCloudWorker(zkCloudWorkerRequestDTO);
+        String body = stringResponseEntity.getBody();
+        ZkCloudWorkerGetBlockInfoResponse zkCloudWorkerGetBlockInfoResponse = gson.fromJson(body, ZkCloudWorkerGetBlockInfoResponse.class);
+        String result = zkCloudWorkerGetBlockInfoResponse.getResult();
+        return gson.fromJson(result, IpfsDomainMetadataZkDataDTO.class);
+    }
+
+    private void getMoreBlocksIfNeed(List<ZkCloudWorkerBlocksResponse> finalBlocks, List<ZkCloudWorkerBlocksResponse> blocks, long topBlockNumber) {
+        List<ZkCloudWorkerBlocksResponse> allBlocks = new ArrayList<>();
+        int blockNumber = finalBlocks.getLast().getBlockNumber();
+        if (!finalBlocks.isEmpty() && blocks.size() == finalBlocks.size()) {
+            String startBlock = finalBlocks.getLast().getPreviousBlockAddress();
+            while (blockNumber != topBlockNumber + 1) {
+                List<ZkCloudWorkerBlocksResponse> cloudWorkerBlocksResponses = getBlockInfo(startBlock).getBlocks()
+                        .stream()
+                        .filter(ZkCloudWorkerBlocksResponse::isFinal)
+                        .filter(value -> value.getBlockNumber() > topBlockNumber)
+                        .toList();
+                allBlocks.addAll(cloudWorkerBlocksResponses);
+                blockNumber = cloudWorkerBlocksResponses.getLast().getBlockNumber();
+                startBlock = cloudWorkerBlocksResponses.getLast().getPreviousBlockAddress();
+            }
+        }
+        finalBlocks.addAll(allBlocks);
+    }
+
+    private void addNewDomainsOrUpdateOld(List<ZkCloudWorkerBlocksResponse> cloudWorkerBlocksResponses, long topBlockNumber) {
+        for (ZkCloudWorkerBlocksResponse finalBlock : cloudWorkerBlocksResponses) {
             if (finalBlock.getBlockNumber() <= topBlockNumber) {
                 continue;
             }
@@ -140,17 +179,6 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
             activateNewDomains(finalBlock, transactions, ipfs);
             updateOldDomains(finalBlock, transactions);
         }
-    }
-
-    @Override
-    public IpfsDomainMetadataZkDataDTO getDomainMetadata(String domainMetadata) {
-        ZkCloudWorkerDataDTO zkCloudWorkerDataDTO = mapToZkCloudWorkerDataDTO(GET_DOMAIN_METADATA, domainMetadata);
-        ZkCloudWorkerRequestDTO zkCloudWorkerRequestDTO = mapToZkCloudWorkerRequestDTO(zkCloudWorkerDataDTO, GET_DOMAIN_METADATA);
-        ResponseEntity<String> stringResponseEntity = zkCloudWorkerClient.sendToZkCloudWorker(zkCloudWorkerRequestDTO);
-        String body = stringResponseEntity.getBody();
-        ZkCloudWorkerGetBlockInfoResponse zkCloudWorkerGetBlockInfoResponse = gson.fromJson(body, ZkCloudWorkerGetBlockInfoResponse.class);
-        String result = zkCloudWorkerGetBlockInfoResponse.getResult();
-        return gson.fromJson(result, IpfsDomainMetadataZkDataDTO.class);
     }
 
     private void activateNewDomains(ZkCloudWorkerBlocksResponse finalBlock, List<IpfsZkCloudWorkerTransactionWrapperResponse> transactions, String ipfs) {
@@ -251,14 +279,14 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
     }
 
     private void setTxIds(ResponseEntity<String> stringResponseEntity, List<DomainEntity> domainEntities) {
-        List<String> txIds = gson.fromJson(stringResponseEntity.getBody(), new TypeToken<List<String>>() {
+        List<ZkCloudWorkerSendTxResponse> txIds = gson.fromJson(stringResponseEntity.getBody(), new TypeToken<List<ZkCloudWorkerSendTxResponse>>() {
         }.getType());
 
         for (int i = 0; i < domainEntities.size(); i++) {
             DomainEntity domainEntity = domainEntities.get(i);
             if (txIds != null) {
-                String txId = txIds.get(i);
-                domainEntity.setZkTxId(txId);
+                ZkCloudWorkerSendTxResponse zkCloudWorkerSendTxResponse = txIds.get(i);
+                domainEntity.setZkTxId(zkCloudWorkerSendTxResponse.getTxId());
             }
         }
     }
@@ -278,13 +306,14 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
                 .build();
     }
 
-    private ZkCloudWorkerDataDTO mapToZkCloudWorkerDataDTO(ZkCloudWorkerTask zkCloudWorkerTask, String domainMetadata) {
+    private ZkCloudWorkerDataDTO mapToZkCloudWorkerDataDTO(ZkCloudWorkerTask zkCloudWorkerTask, String domainMetadata, String startBlock) {
         return ZkCloudWorkerDataDTO.builder()
                 .task(zkCloudWorkerTask.getName())
                 .metadata(zkCloudWorkerTask.getMetadata())
                 .args(mapArgsToString(ZkCloudWorkerArgs.builder()
                         .contractAddress(mnsContract)
                         .domain(domainMetadata)
+                        .startBlock(startBlock)
                         .build()))
                 .build();
     }
