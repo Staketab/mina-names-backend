@@ -24,11 +24,12 @@ public class ZkCloudWorkerClient {
     @Value("${zk-cloud-worker.chain}")
     private String chain;
 
-    private static final String PATH_TO_ZK_CLOUD_WORKER = "";
+    private static final String PATH_TO_ZK_CLOUD_WORKER = "/";
 
     public ResponseEntity<String> sendToZkCloudWorker(ZkCloudWorkerRequestDTO requestDTO) {
         setDefaultValues(requestDTO);
         log.info(requestDTO.toString());
+        log.info(zkCloudWorkerRestTemplate.getUriTemplateHandler().expand("/").toString());
         return zkCloudWorkerRestTemplate.postForEntity(PATH_TO_ZK_CLOUD_WORKER, requestDTO, String.class);
     }
 
