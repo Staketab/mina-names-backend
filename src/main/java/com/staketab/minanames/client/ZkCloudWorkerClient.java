@@ -24,7 +24,7 @@ public class ZkCloudWorkerClient {
     @Value("${zk-cloud-worker.chain}")
     private String chain;
 
-    private static final String PATH_TO_ZK_CLOUD_WORKER = "/devnet";
+    private static final String PATH_TO_ZK_CLOUD_WORKER = "";
 
     public ResponseEntity<String> sendToZkCloudWorker(ZkCloudWorkerRequestDTO requestDTO) {
         setDefaultValues(requestDTO);
