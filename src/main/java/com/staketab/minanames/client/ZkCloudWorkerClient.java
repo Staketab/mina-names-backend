@@ -32,8 +32,11 @@ public class ZkCloudWorkerClient {
         Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
         setDefaultValues(requestDTO);
         if(requestDTO.getCommand().equals("sendTransactions")) {
+            log.info("equals");
             log.info(gson.toJson(requestDTO));
         }
+        log.info(gson.toJson(requestDTO));
+        log.info("-------------------------------------------");
         return zkCloudWorkerRestTemplate.postForEntity(PATH_TO_ZK_CLOUD_WORKER, requestDTO, String.class);
     }
 
