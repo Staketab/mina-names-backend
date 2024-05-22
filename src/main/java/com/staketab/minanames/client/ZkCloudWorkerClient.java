@@ -2,6 +2,7 @@ package com.staketab.minanames.client;
 
 import com.staketab.minanames.dto.ZkCloudWorkerRequestDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class ZkCloudWorkerClient {
 
     private final RestTemplate zkCloudWorkerRestTemplate;
@@ -26,6 +28,7 @@ public class ZkCloudWorkerClient {
 
     public ResponseEntity<String> sendToZkCloudWorker(ZkCloudWorkerRequestDTO requestDTO) {
         setDefaultValues(requestDTO);
+        log.info(requestDTO.toString());
         return zkCloudWorkerRestTemplate.postForEntity(PATH_TO_ZK_CLOUD_WORKER, requestDTO, String.class);
     }
 
