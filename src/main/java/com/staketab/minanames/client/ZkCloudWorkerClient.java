@@ -1,5 +1,7 @@
 package com.staketab.minanames.client;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.staketab.minanames.dto.ZkCloudWorkerRequestDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +29,11 @@ public class ZkCloudWorkerClient {
     private static final String PATH_TO_ZK_CLOUD_WORKER = "/";
 
     public ResponseEntity<String> sendToZkCloudWorker(ZkCloudWorkerRequestDTO requestDTO) {
+        Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
         setDefaultValues(requestDTO);
+        if(requestDTO.getCommand().equals("sendTransactions")) {
+            log.info(gson.toJson(requestDTO));
+        }
         return zkCloudWorkerRestTemplate.postForEntity(PATH_TO_ZK_CLOUD_WORKER, requestDTO, String.class);
     }
 
