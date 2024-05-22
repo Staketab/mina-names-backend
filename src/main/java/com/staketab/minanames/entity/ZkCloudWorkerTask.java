@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum ZkCloudWorkerTask {
     CREATE_TASK("createTxTask", "backend txTask", "execute"),
-    SEND_TRANSACTIONS(null, "backend txs", "sendTransactions"),
+    SEND_TRANSACTIONS("getTransactions", "backend txs", "sendTransactions"),
     GET_BLOCK_INFO("getBlocksInfo", "commands info", "execute"),
     GET_DOMAIN_METADATA("getMetadata", "commands info", "execute");
 
