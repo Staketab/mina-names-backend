@@ -66,8 +66,9 @@ public class DomainController {
                                                     @Parameter(description = "Domain status") DomainStatus domainStatus,
                                                 @RequestParam(required = false, defaultValue = "")
                                                     @Parameter(description = "Domain Name") String searchStr) {
+        String status = domainStatus != null ? domainStatus.name() : null;
         SearchParams searchParams = new SearchParams(searchStr);
-        return domainService.findAllByAccountPageable(request.withSortColumn(sortBy), accountAddress, searchParams, domainStatus.name());
+        return domainService.findAllByAccountPageable(request.withSortColumn(sortBy), accountAddress, searchParams, status);
     }
 
     @GetMapping("/simple")
