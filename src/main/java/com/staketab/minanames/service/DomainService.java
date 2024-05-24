@@ -11,6 +11,7 @@ import com.staketab.minanames.dto.SimpleDomainDTO;
 import com.staketab.minanames.dto.request.BaseRequest;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.entity.DomainEntity;
+import com.staketab.minanames.entity.DomainStatus;
 import org.springframework.data.domain.Page;
 
 public interface DomainService {
@@ -18,7 +19,8 @@ public interface DomainService {
 
     Page<SimpleDomainDTO> findAllSimpleDomainsByPageable(BaseRequest request);
 
-    Page<DomainEntity> findAllByAccountPageable(BaseRequest request, String accountAddress, SearchParams searchParams);
+    Page<DomainEntity> findAllByAccountPageable(BaseRequest request, String accountAddress, SearchParams searchParams,
+                                                String domainStatus);
 
     DomainEntity create(DomainReservationDTO domainRequest);
 

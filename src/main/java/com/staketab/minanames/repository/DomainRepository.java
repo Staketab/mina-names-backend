@@ -1,6 +1,7 @@
 package com.staketab.minanames.repository;
 
 import com.staketab.minanames.entity.DomainEntity;
+import com.staketab.minanames.entity.DomainStatus;
 import com.staketab.minanames.entity.PayableTransactionEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,9 +37,12 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
     @Query(nativeQuery = true,
             value = """
                     select *
-                        from domains
-                        where owner_address = :accountAddress and (:searchStr is null or name = :searchStr)""")
-    Page<DomainEntity> findAllDomainsByAccount(String searchStr, String accountAddress, Pageable buildPageable);
+                    from domains
+                    where owner_address = :accountAddress
+                      and (:searchStr is null or name = :searchStr)
+                      and (:domainStatus is null or status = :domainStatus)
+                    """)
+    Page<DomainEntity> findAllDomainsByAccount(String searchStr, String accountAddress, String domainStatus, Pageable buildPageable);
 
     @Query(nativeQuery = true,
             value = """
