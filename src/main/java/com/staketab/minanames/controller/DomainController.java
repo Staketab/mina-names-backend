@@ -12,6 +12,7 @@ import com.staketab.minanames.dto.request.BaseRequest;
 import com.staketab.minanames.dto.request.SearchParams;
 import com.staketab.minanames.dto.request.sort.DomainsSortColumn;
 import com.staketab.minanames.entity.DomainEntity;
+import com.staketab.minanames.entity.DomainStatus;
 import com.staketab.minanames.service.DomainService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -61,10 +62,12 @@ public class DomainController {
                                                 @RequestParam @Schema(defaultValue = "RESERVATION_TIMESTAMP", allowableValues =
                                                         {"AMOUNT", "STATUS", "RESERVATION_TIMESTAMP", "IS_SEND_TO_CLOUD_WORKER"},
                                                         description = "Select sorting parameter.") DomainsSortColumn sortBy,
+                                                @RequestParam(required = false)
+                                                    @Parameter(description = "Domain status") DomainStatus domainStatus,
                                                 @RequestParam(required = false, defaultValue = "")
-                                                @Parameter(description = "Domain Name") String searchStr) {
+                                                    @Parameter(description = "Domain Name") String searchStr) {
         SearchParams searchParams = new SearchParams(searchStr);
-        return domainService.findAllByAccountPageable(request.withSortColumn(sortBy), accountAddress, searchParams);
+        return domainService.findAllByAccountPageable(request.withSortColumn(sortBy), accountAddress, searchParams, domainStatus.name());
     }
 
     @GetMapping("/simple")
