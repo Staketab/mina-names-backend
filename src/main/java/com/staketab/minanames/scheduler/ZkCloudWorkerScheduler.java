@@ -15,10 +15,10 @@ public class ZkCloudWorkerScheduler {
 
     private final ZkCloudWorkerService zkCloudWorkerService;
 
-    @Scheduled(cron = "${scheduled.zk-cloud-worker.send-task-cron}")
-    public void sendCreateTask() {
-        zkCloudWorkerService.sendCreateTask();
-    }
+//    @Scheduled(cron = "${scheduled.zk-cloud-worker.send-task-cron}")
+//    public void sendCreateTask() {
+//        zkCloudWorkerService.sendCreateTask();
+//    }
 
     @Scheduled(fixedDelayString = "${scheduled.zk-cloud-worker.check-zk-blocks}")
     public void checkBlocksFromZkCloudWorker() {
