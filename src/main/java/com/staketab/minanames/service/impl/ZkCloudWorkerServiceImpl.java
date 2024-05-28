@@ -94,6 +94,10 @@ public class ZkCloudWorkerServiceImpl implements ZkCloudWorkerService {
         List<DomainEntity> entities = domainEntities.stream()
                 .peek(domainEntity -> domainEntity.setIsSendToCloudWorker(true)).toList();
 
+        if (!zkCloudWorkerTransactions.isEmpty()) {
+            sendCreateTask();
+        }
+
         ZkCloudWorkerDataDTO zkCloudWorkerDataDTO = mapToZkCloudWorkerDataDTO(zkCloudWorkerTransactions, SEND_TRANSACTIONS);
         ZkCloudWorkerRequestDTO zkCloudWorkerRequestDTO = mapToZkCloudWorkerRequestDTO(zkCloudWorkerDataDTO, SEND_TRANSACTIONS);
         ResponseEntity<String> stringResponseEntity = zkCloudWorkerClient.sendToZkCloudWorker(zkCloudWorkerRequestDTO);
