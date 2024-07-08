@@ -33,4 +33,13 @@ public class ActivityController {
                                            @PathVariable String address) {
         return activityService.findAllByPageable(request.withSortColumn(sortBy), address);
     }
+
+    @GetMapping("/domain/{domainName}")
+    @Operation(summary = "getActivities", description = "Get a page of all activities.")
+    public Page<ActivityDTO> getActivitiesByDomainName(@Valid @ParameterObject BaseRequest request,
+                                           @RequestParam @Schema(defaultValue = "TIMESTAMP", allowableValues = {"TIMESTAMP"},
+                                                   description = "Select sorting parameter.") ActivitySortColumn sortBy,
+                                           @PathVariable String domainName) {
+        return activityService.findAllByDomainNameAndPageable(request.withSortColumn(sortBy), domainName);
+    }
 }

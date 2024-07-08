@@ -17,4 +17,11 @@ public interface ActivityRepository extends JpaRepository<ActivityEntity, String
                       from activity
                       where owner_address = :address and is_show is true""")
     Page<ActivityEntity> findAllActivities(Pageable buildPageable, String address);
+
+    @Query(nativeQuery = true,
+            value = """
+                    select *
+                      from activity
+                      where domain_name = :domainName and is_show is true""")
+    Page<ActivityEntity> findAllActivitiesByDomainName(Pageable buildPageable, String domainName);
 }

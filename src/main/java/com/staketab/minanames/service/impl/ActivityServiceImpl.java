@@ -30,6 +30,12 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
+    public Page<ActivityDTO> findAllByDomainNameAndPageable(BaseRequest baseRequest, String domainName) {
+        return activityRepository.findAllActivitiesByDomainName(baseRequest.buildPageable(), domainName)
+                .map(this::buildActivityDTO);
+    }
+
+    @Override
     public void saveActivity(DomainEntity domainEntity, ActivityStatus status, String details) {
         activityRepository.save(buildActivityEntity(domainEntity, status, details));
     }

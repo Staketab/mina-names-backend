@@ -13,6 +13,8 @@ public interface ActivityService {
 
     Page<ActivityDTO> findAllByPageable(BaseRequest baseRequest, String address);
 
+    Page<ActivityDTO> findAllByDomainNameAndPageable(BaseRequest baseRequest, String domainName);
+
     void saveActivity(DomainEntity domainEntity, ActivityStatus status, String details);
 
     void saveAllActivities(List<DomainEntity> domainEntities, ActivityStatus status, String details);
