@@ -6,6 +6,7 @@ import com.staketab.minanames.entity.ActivityEntity;
 import com.staketab.minanames.entity.ActivityStatus;
 import com.staketab.minanames.entity.DomainEntity;
 import com.staketab.minanames.repository.ActivityRepository;
+import com.staketab.minanames.repository.projection.ActivityProjection;
 import com.staketab.minanames.service.ActivityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,15 +65,16 @@ public class ActivityServiceImpl implements ActivityService {
                 .build();
     }
 
-    private ActivityDTO buildActivityDTO(ActivityEntity activityEntity) {
+    private ActivityDTO buildActivityDTO(ActivityProjection activityProjection) {
         return ActivityDTO.builder()
-                .id(activityEntity.getId())
-                .activity(ActivityStatus.valueOf(activityEntity.getStatus()).getMessage())
-                .transaction(activityEntity.getTxHash())
-                .details(activityEntity.getDetails())
-                .timestamp(activityEntity.getTimestamp())
-                .ownerAddress(activityEntity.getOwnerAddress())
-                .domainName(activityEntity.getDomainName())
+                .id(activityProjection.getId())
+                .activity(ActivityStatus.valueOf(activityProjection.getStatus()).getMessage())
+                .transaction(activityProjection.getTxHash())
+                .details(activityProjection.getDetails())
+                .timestamp(activityProjection.getTimestamp())
+                .ownerAddress(activityProjection.getOwnerAddress())
+                .domainName(activityProjection.getDomainName())
+                .domainId(activityProjection.getDomainId())
                 .build();
     }
 }

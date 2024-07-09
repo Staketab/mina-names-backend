@@ -8,6 +8,7 @@ import lombok.Data;
 public class ActivityDTO {
 
     private String id;
+    private String domainId;
     private String domainName;
     private String ownerAddress;
     private String transaction;
