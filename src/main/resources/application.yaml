@@ -76,7 +76,7 @@ scheduled:
   enabled: true
   checker-tx-reserve:
     enabled: true
-    upload-mills: 30000 # runs 30 seconds after the previous job
+    upload-mills: 5000 # runs 30 seconds after the previous job
   domain:
     enabled: true
     remove-reserve-upload-mills: 60000 # runs 60 seconds after the previous job
