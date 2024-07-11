@@ -84,4 +84,4 @@ scheduled:
   zk-cloud-worker:
     enabled: true
     send-task-cron: 0 0 */2 * * *
-    check-zk-blocks: 120000
+    check-zk-blocks: 10000
