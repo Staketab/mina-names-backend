@@ -50,7 +50,7 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
                     FROM domains
                     where reservation_timestamp < :reservationTimestamp
                     and status = :status
-                                            """)
+                    """)
     List<DomainEntity> findAllByReservationTimestampLessThan(Long reservationTimestamp, String status);
 
     @Query(nativeQuery = true,
@@ -59,7 +59,7 @@ public interface DomainRepository extends JpaRepository<DomainEntity, String> {
                     FROM domains
                     where owner_address = (select owner_address from domains where id = :id)
                     and status = 'RESERVED'
-                                            """)
+                    """)
     List<DomainEntity> findAllCartsReservedDomains(String id);
 
     @Modifying
